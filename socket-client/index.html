@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<html>
+<head>
+    <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"
+            integrity="sha384-KAZ4DtjNhLChOB/hxXuKqhMLYvx3b5MlT55xPEiNmREKRzeEm+RVPlTnAn0ajQNs"
+            crossorigin="anonymous"></script>
+    <link href="styles.css" rel="stylesheet">
+    <script src="script.js"></script>
+</head>
+<body>
+<!--Login + logout-->
+<div>
+    <h2>Login test</h2>
+    <div>url:</div>
+    <div>
+        <input style="width: 400px" id="url" type="text" name="url" value="http://localhost:8080/api/auth/login">
+    </div>
+    <div>email:</div>
+    <div>
+        <input id="email" type="text" name="email" value="a@mail.ru">
+    </div>
+    <div>password:</div>
+    <div>
+        <input id="password" type="text" name="password" value="1">
+    </div>
+
+    <button id="login-btn" type="button">Login</button>
+    <button id="logout-btn" type="button">Logout</button>
+
+    <div>
+        <h3>Server reply:</h3>
+        <div id="server-reply"></div>
+    </div>
+</div>
+<!--Socket Test Part-->
+<div>
+    <h2>Socket IO Support Chat Subscription TEST</h2>
+    <div>message name:</div>
+    <div>
+        <input id="message-name" type="text" name="message-name" value="subscribeToChat">
+    </div>
+    <div>message text/data:</div>
+    <div>
+        <input id="message-data" type="text" name="message-data">
+    </div>
+    <button id="start-socket" type="button">Start Socket</button>
+    <button id="send" type="button">Send</button>
+
+    <div>
+        <h3>Server reply:</h3>
+        <div id="socket-reply"></div>
+    </div>
+</div>
+
+
+</body>
+</html>

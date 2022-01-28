@@ -16,6 +16,16 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
-  }
+    "noFallthroughCasesInSwitch": false,
+    "allowJs": false,
+    "paths": {
+
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "files"
+  ],
+  "include": ["src"]
 }
