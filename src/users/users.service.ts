@@ -1,4 +1,4 @@
-import { Injectable, ParamData } from '@nestjs/common';
+import {BadRequestException, Injectable, ParamData, UnauthorizedException} from '@nestjs/common';
 import { Model } from 'mongoose';
 import { UserDocument, User } from './user.schema';
 import { ID } from '../common/ID';
@@ -25,6 +25,10 @@ export class UsersService implements IUserService {
 
   // Поле role может принимать одно из следующих значений: client, admin, manager
   public async create(data: Partial<User>): Promise<User> {
+    const exist = await this.findByEmail(data.email);
+    if (exist) {
+      throw new BadRequestException();
+    }
     return this.userModel.create(data);
   }
 

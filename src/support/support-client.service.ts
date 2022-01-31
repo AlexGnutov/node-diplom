@@ -13,18 +13,20 @@ import { Model, Schema } from 'mongoose';
 interface ISupportRequestClientService {
   createSupportRequest(data: CreateSupportRequestDto): Promise<SupportRequest>;
   markMessagesAsRead(params: MarkMessagesAsReadDto);
-  // getUnreadCount(supportRequest: ID): Promise<Message[]>;
+  getUnreadCount(supportRequest: ID): Promise<Message[]>;
 }
 
 @Injectable()
 export class SupportClientService implements ISupportRequestClientService {
   constructor(
+    // Importing both models - for requests and for messages
     @InjectModel(SupportRequest.name)
     private readonly supportRequestModel: Model<SupportRequestDocument>,
     @InjectModel(Message.name)
     private readonly messageModel: Model<MessageDocument>,
   ) {}
 
+  // Creates request and puts initial message into it
   async createSupportRequest(
     data: CreateSupportRequestDto,
   ): Promise<SupportRequest> {
@@ -46,8 +48,7 @@ export class SupportClientService implements ISupportRequestClientService {
     return newRequest;
   }
 
-  // должен выставлять текущую дату в поле readAt всем сообщениям,
-  // которые не были прочитаны и были отправлены не пользователем.
+  // Marks all unread messages from support as read
   async markMessagesAsRead(params: MarkMessagesAsReadDto) {
     const currentUser = params.user;
     const requestID = params.supportRequest;
@@ -73,9 +74,22 @@ export class SupportClientService implements ISupportRequestClientService {
     return { success: true };
   }
 
-  /*
+  // Returns messages unread by request user
   async getUnreadCount(supportRequest: ID): Promise<Message[]> {
+    // Get request with messages
+    const request = await this.supportRequestModel
+      .findById(supportRequest)
+      .populate({ path: 'messages' })
+      .exec();
+    const unreadMessages = request.messages.filter((message) => {
+      if (
+        !message.readAt &&
+        message.author.toString() !== request.user.toString()
+      ) {
+        return true;
+      }
+      return false;
+    });
+    return Promise.resolve(unreadMessages);
   }
-
-   */
 }

@@ -24,12 +24,34 @@ export class SupportEmployeeService implements ISupportRequestEmployeeService {
     private messageModel: Model<MessageDocument>,
   ) {}
 
-  closeRequest(supportRequest: ID): Promise<void> {
-    return Promise.resolve(undefined);
+  async closeRequest(supportRequest: ID): Promise<void> {
+    try {
+      await this.supportRequestModel.findByIdAndUpdate(supportRequest, {
+        isActive: false,
+      });
+    } catch (e) {
+      console.log(e.message);
+    }
   }
 
-  getUnreadCount(supportRequest: ID): Promise<Message[]> {
-    return Promise.resolve([]);
+  async getUnreadCount(supportRequest: ID): Promise<Message[]> {
+    // Get request with messages
+    const request = await this.supportRequestModel
+      .findById(supportRequest)
+      .populate({ path: 'messages' })
+      .exec();
+
+    const unreadMessages = request.messages.filter((message) => {
+      if (
+        !message.readAt &&
+        message.author.toString() === request.user.toString()
+      ) {
+        return true;
+      }
+      return false;
+    });
+
+    return Promise.resolve(unreadMessages);
   }
 
   async markMessagesAsRead(params: MarkMessagesAsReadDto) {

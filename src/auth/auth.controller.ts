@@ -5,14 +5,15 @@ import {
   UseGuards,
   Get,
   Request,
+  UsePipes,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthenticatedGuard } from './guards/authenticated.guard';
-import { Role } from '../roles/role.enum';
-import { Roles } from '../roles/roles.decorator';
 import { UnauthenticatedGuard } from './guards/unauthenticated.guard';
-import { RolesGuard } from '../roles/roles.guard';
+import { UserRegisterPipe } from './pipes/user-register.pipe';
+import { UserRegisterInterceptor } from './interceptors/user-register.interceptor';
 
 interface userRegisterDto {
   email: string;
@@ -25,33 +26,37 @@ interface userRegisterDto {
 export class AuthController {
   constructor(private userService: UsersService) {}
 
-  // Доступно только не аутентифицированным пользователям.
+  // 2.3.1 Login route
   @UseGuards(UnauthenticatedGuard, LocalAuthGuard)
   @Post('api/auth/login')
-  login(
-    @Body() loginData /*: Pick<userRegisterDto, 'email' | 'password'>*/,
-    @Request() req: any,
-  ) {
-    console.log(' new Data: ', loginData);
-    console.log(req.user);
-    return 'logged in';
+  login(@Body() loginData, @Request() req: any) {
+    // console.log(' new Data: ', loginData);
+    // console.log(req.user);
+    return {
+      email: req.user.email,
+      name: req.user.name,
+      contactPhone: req.user.contactPhone,
+    };
   }
 
-  // Доступно только аутентифицированным пользователям.
+  // 2.3.2 Logout route
   @UseGuards(AuthenticatedGuard)
   @Post('api/auth/logout')
   logout(@Request() req) {
     req.logout();
-    return 'Logged out';
+    return {};
   }
 
+  // 2.3.3 Registration
   @UseGuards(UnauthenticatedGuard)
   @Post('api/client/register')
+  @UseInterceptors(UserRegisterInterceptor)
+  @UsePipes(new UserRegisterPipe())
   register(@Body() userData: userRegisterDto) {
-    return 'register launched';
+    return this.userService.create(userData);
   }
-  // 400 - если email уже занят
 
+  /*
   // These routes are only for roles check
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Get('api/role-check/admin')
@@ -59,18 +64,17 @@ export class AuthController {
   checkRoleAdmin() {
     return 'You are admin';
   }
-
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Get('api/role-check/client')
   @Roles(Role.User)
   checkRoleClient() {
     return 'You are client';
   }
-
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Get('api/role-check/manager')
   @Roles(Role.Manager)
   checkRoleManager() {
     return 'You are manager';
   }
+  */
 }

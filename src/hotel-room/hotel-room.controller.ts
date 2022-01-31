@@ -8,6 +8,7 @@ import {
   UploadedFile,
   UploadedFiles,
   UseInterceptors,
+  Request, UseGuards,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -21,6 +22,8 @@ import {SearchHotelRoomInterceptor} from "./interceptors/search-hotel-room.inter
 import {ExactHotelRoomInterceptor} from "./interceptors/exact-hotel-room.interceptor";
 import {Role} from "../roles/role.enum";
 import {Roles} from "../roles/roles.decorator";
+import {AuthenticatedGuard} from "../auth/guards/authenticated.guard";
+import {RolesGuard} from "../roles/roles.guard";
 
 @Controller()
 export class HotelRoomController {
@@ -28,11 +31,13 @@ export class HotelRoomController {
 
   @Get('api/common/hotel-rooms')
   @UseInterceptors(SearchHotelRoomInterceptor)
-  hotelRoomsSearch(@Query() queryParams: SearchRoomsParams) {
-    // Если пользователь не аутентифицирован или его роль client,
-    // то при поиске всегда должен использоваться флаг isEnabled: true.
-    // позже установи это значение в зависимости от роли
-    queryParams.isEnabled = true;
+  hotelRoomsSearch(
+    @Query() queryParams: SearchRoomsParams,
+    @Request() req: any,
+  ) {
+    if (!req.user || req.user['role'] === 'client') {
+      queryParams.isEnabled = true;
+    }
     return this.hotelRoomService.search(queryParams);
   }
 
@@ -42,9 +47,7 @@ export class HotelRoomController {
     return this.hotelRoomService.findById(id);
   }
 
-  // Ошибки для маршрутов admin
-  // 401 - если пользователь не аутентифицирован
-  // 403 - если роль пользователя не admin
+  @UseGuards(AuthenticatedGuard, RolesGuard)
   @Post('/api/admin/hotel-rooms/')
   @Roles(Role.Admin) // restrict roles
   @UseInterceptors(
@@ -67,6 +70,7 @@ export class HotelRoomController {
     return this.hotelRoomService.create(roomData);
   }
 
+  @UseGuards(AuthenticatedGuard, RolesGuard)
   @Put('api/admin/hotel-rooms/:id')
   @Roles(Role.Admin) // restrict roles
   @UseInterceptors(
@@ -99,8 +103,7 @@ export class HotelRoomController {
       // If no old images data was sent - just take file names
       dataFields.images = newImages;
     }
-
-    console.log(dataFields.images);
+    // console.log(dataFields.images);
     const roomData = { ...dataFields };
     return this.hotelRoomService.update(id, roomData);
   }

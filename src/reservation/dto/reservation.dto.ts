@@ -1,4 +1,4 @@
-import { ID } from "../../common/ID";
+import { ID } from '../../common/ID';
 
 export interface ReservationDto {
   user: ID;

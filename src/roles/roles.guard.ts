@@ -18,8 +18,8 @@ export class RolesGuard implements CanActivate {
     }
     // Get user to have his role
     const { user } = context.switchToHttp().getRequest();
-    console.log('Роли в этом запросе: ', requiredRoles);
-    console.log('Роль пользователя: ', user.role);
+    // console.log('Roles attached to the handler: ', requiredRoles);
+    // console.log('Role of the current user: ', user.role);
     return requiredRoles.includes(user.role);
   }
 }

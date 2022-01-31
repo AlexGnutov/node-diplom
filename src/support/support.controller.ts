@@ -6,7 +6,7 @@ import {
   Post,
   Query,
   Request,
-  UseGuards,
+  UseGuards, UseInterceptors,
 } from '@nestjs/common';
 import { Roles } from '../roles/roles.decorator';
 import { Role } from '../roles/role.enum';
@@ -19,6 +19,11 @@ import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 import { RolesGuard } from '../roles/roles.guard';
 import { ID } from '../common/ID';
 import { MarkMessagesAsReadDto } from './dto/mark-message-as-read.dto';
+import { CreateSupportRequestInterceptor } from './interceptors/create-support-request.interceptor';
+import { SupportReqListClientInterceptor } from './interceptors/support-req-list-client.interceptor';
+import { SupportReqListManagerInterceptor } from './interceptors/support-req-list-manager.interceptor';
+import {GetMessagesInterceptor} from "./interceptors/get-messages.interceptor";
+import {SendMessageInterceptor} from "./interceptors/send-message.interceptor";
 
 @Controller()
 export class SupportController {
@@ -27,9 +32,10 @@ export class SupportController {
     private readonly supportClientService: SupportClientService,
     private readonly supportEmployeeService: SupportEmployeeService,
   ) {}
-  //
-  // 2.5.1 - Create support request
+
+  // 2.5.1 - Create support request (G-I-R)
   @UseGuards(AuthenticatedGuard, RolesGuard)
+  @UseInterceptors(CreateSupportRequestInterceptor)
   @Post('api/client/support-requests')
   @Roles(Role.User)
   createSupportRequest(@Body() body, @Request() req) {
@@ -37,26 +43,29 @@ export class SupportController {
       user: req.user.id,
       text: body.text,
     };
-    console.log(data);
+    // console.log(data);
     return this.supportClientService.createSupportRequest(data);
   }
-  //
-  // 2.5.2 - Get requests list for client
+
+  // 2.5.2 - Get requests list for client (G-I-R)
   @UseGuards(AuthenticatedGuard, RolesGuard)
+  @UseInterceptors(SupportReqListClientInterceptor)
   @Get('api/client/support-requests')
   @Roles(Role.User)
-  getMySupportInquiriesList(@Query() queryParams, @Request() req) {
+  getMySupportRequestsList(@Query() queryParams, @Request() req) {
     const data: GetChatListParams = {
       user: req.user.id,
       isActive: queryParams.isActive,
       offset: queryParams.offset,
       limit: queryParams.limit,
     };
-    console.log(data);
+    // console.log(data);
     return this.supportService.findSupportRequests(data);
   }
-  //
-  // 2.5.3 - List of Requests for manager
+
+  // 2.5.3 - List of Requests for manager (G-I-R)
+  @UseGuards(AuthenticatedGuard, RolesGuard)
+  @UseInterceptors(SupportReqListManagerInterceptor)
   @Get('api/manager/support-requests')
   @Roles(Role.Manager)
   getClientsReqList(@Query() queryParams: any) {
@@ -69,17 +78,19 @@ export class SupportController {
     console.log(data);
     return this.supportService.findSupportRequests(data);
   }
-  //
-  // 2.5.4 - List of Request's messages
+
+  // 2.5.4 - List of Request's messages (G-I-R)
   @UseGuards(AuthenticatedGuard, RolesGuard)
+  @UseInterceptors(GetMessagesInterceptor)
   @Get('api/common/support-requests/:id/messages')
   @Roles(Role.Manager, Role.User)
-  getChatMessages(@Param('id') id: string) {
-    return this.supportService.getMessages(id);
+  getChatMessages(@Param('id') id: string, @Request() req: any) {
+    return this.supportService.getMessages(id, req.user);
   }
-  //
-  // 2.5.5 - Send message to a chat (Request)
+
+  // 2.5.5 - Send message to a chat (Request) (G-I-R)
   @UseGuards(AuthenticatedGuard, RolesGuard)
+  @UseInterceptors(SendMessageInterceptor)
   @Post('api/common/support-requests/:id/messages')
   @Roles(Role.Manager, Role.User)
   sendChatMessage(
@@ -94,8 +105,8 @@ export class SupportController {
     };
     return this.supportService.sendMessage(data);
   }
-  //
-  // 2.5.6 - Mark messages from other's as read
+
+  // 2.5.6 - Mark messages from other's as read (G-R)
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Post('api/common/support-requests/:id/messages/read')
   @Roles(Role.Manager, Role.User)
@@ -109,12 +120,22 @@ export class SupportController {
       supportRequest: supportReqId,
       createdBefore: body.createdBefore,
     };
-    // for client - use client's service
-    // for manager - manager's service
+    // choose service acc. role
     if (req.user.role === Role.User) {
       return this.supportClientService.markMessagesAsRead(data);
     } else if (req.user.role === Role.Manager) {
       return this.supportEmployeeService.markMessagesAsRead(data);
     }
+  }
+  //
+  // functions test
+  @Get('api/test/:reqid')
+  async checkUnreadCounts(@Param('reqid') reqId: ID) {
+    const clients = await this.supportClientService.getUnreadCount(reqId);
+    const managers = await this.supportEmployeeService.getUnreadCount(reqId);
+    return {
+      clients,
+      managers,
+    };
   }
 }

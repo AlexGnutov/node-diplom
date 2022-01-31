@@ -1,8 +1,7 @@
 # compiled output
-socket-client
+.env
 /dist
 /node_modules
-/http
 /files
 
 # Logs

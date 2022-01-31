@@ -1,4 +1,9 @@
-import {PipeTransform, Injectable, ArgumentMetadata, BadRequestException} from '@nestjs/common';
+import {
+  PipeTransform,
+  Injectable,
+  ArgumentMetadata,
+  BadRequestException,
+} from '@nestjs/common';
 import { Types } from 'mongoose';
 const ObjectId = Types.ObjectId;
 
@@ -12,6 +17,7 @@ export class ReservationValidationPipe implements PipeTransform {
       dateStart.toString() === 'Invalid Date' ||
       dateEnd.toString() === 'Invalid Date'
     ) {
+      console.log('Dates are bad!');
       throw new BadRequestException();
     }
 
@@ -20,11 +26,13 @@ export class ReservationValidationPipe implements PipeTransform {
     }
 
     const room = data.hotelRoom;
+    const hotel = data.hotel;
 
     const output = {
       room,
       dateStart,
       dateEnd,
+      hotel,
     };
 
     return output;

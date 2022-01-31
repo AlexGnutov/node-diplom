@@ -1,4 +1,4 @@
-import {Injectable, InternalServerErrorException} from '@nestjs/common';
+import {Injectable, InternalServerErrorException, UnauthorizedException} from '@nestjs/common';
 import {
   SupportRequest,
   SupportRequestDocument,
@@ -9,15 +9,16 @@ import { ID } from '../common/ID';
 import { SendMessageDto } from './dto/send-message.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { SupportSocketGateway } from './gateway/support-socket.gateway';
+import { Role } from "../roles/role.enum";
 
 interface ISupportRequestService {
   findSupportRequests(params: GetChatListParams): Promise<SupportRequest[]>;
   sendMessage(data: SendMessageDto): Promise<Message>;
-  getMessages(supportRequest: ID): Promise<Message[]>;
-  /*subscribe(
-    handler: (supportRequest: SupportRequest, message: Message) => void,
-  ): () => void;
-  */
+  getMessages(supportRequest: ID, user: any): Promise<Message[]>;
+  // subscribe(
+  // handler: (supportRequest: SupportRequest, message: Message) => void,
+  // ): () => void;
 }
 
 @Injectable()
@@ -27,6 +28,7 @@ export class SupportService implements ISupportRequestService {
     private readonly supportRequestModel: Model<SupportRequestDocument>,
     @InjectModel(Message.name)
     private readonly messageModel: Model<MessageDocument>,
+    private readonly gateway: SupportSocketGateway,
   ) {}
 
   async findSupportRequests(
@@ -50,16 +52,31 @@ export class SupportService implements ISupportRequestService {
     };
     // Access DB for requests list:
     try {
-      return this.supportRequestModel.find(filter, null, options).exec();
+      return this.supportRequestModel
+        .find(filter, null, options)
+        .populate({ path: 'user' })
+        .exec();
     } catch (e) {
       console.log('DB error - cant get Request List');
       throw new InternalServerErrorException();
     }
   }
 
-  async getMessages(supportRequest: ID): Promise<Message[]> {
+  async getMessages(supportRequest: ID, user: any): Promise<Message[]> {
     try {
-      const chat = await this.supportRequestModel.findById(supportRequest);
+      const chat = await this.supportRequestModel
+        .findById(supportRequest)
+        .populate({
+          path: 'messages',
+          populate: { path: 'author' },
+        })
+        .exec();
+      // Check if user is author of the request, when role = user
+      if (user.role === Role.User && chat.user.toString() !== user.id) {
+        console.log('User is not the owner of request');
+        throw new UnauthorizedException();
+      }
+      //**//
       return chat.messages;
     } catch (e) {
       console.log('DB error - cant get chat messages');
@@ -72,17 +89,23 @@ export class SupportService implements ISupportRequestService {
     const request = await this.supportRequestModel.findById(
       data.supportRequest,
     );
-    console.log(request);
-
+    // Create new message document
     const newMessage = await this.messageModel.create({
       author: data.author,
       sentAt: new Date(),
       text: data.text,
     });
-
+    // Push the message into request and save it
     request.messages.push(newMessage);
     request.save();
-    console.log(request.messages);
+    // Send new message via web-socket
+    try {
+      this.gateway.sendNewMessage(request, newMessage);
+    } catch (e) {
+      console.log(e.message);
+    }
+    // Add author to the message
+    await newMessage.populate({ path: 'author' });
     return newMessage;
   }
 }

@@ -10,19 +10,26 @@ import { HotelRoomModule } from './hotel-room/hotel-room.module';
 import { SupportModule } from './support/support.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { ConfigModule } from '@nestjs/config';
 
 const options = {
-  user: 'user',
-  pass: 'password',
-  // dbName: 'diploma_db',
+  user: process.env.DB_USERNAME || 'user',
+  pass: process.env.DB_PASSWORD || 'password',
+  // dbName: process.env.DB_NAME, // test - is default, can comment
   useNewUrlParser: true,
   useUnifiedTopology: true,
 };
 
-const dbURL = 'mongodb://localhost:8082';
+const dbURL = process.env.DB_HOST || 'mongodb://localhost:8082';
+
+console.log(options);
+console.log(dbURL);
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     MongooseModule.forRoot(dbURL, options),
     MulterModule.register({
       storage: './files',

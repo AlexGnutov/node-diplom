@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 @Injectable()
-export class CreateUserInterceptor implements NestInterceptor {
+export class UserRegisterInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     // Formats user created by admin
     return next.handle().pipe(
@@ -17,8 +17,6 @@ export class CreateUserInterceptor implements NestInterceptor {
           id: value._id,
           email: value.email,
           name: value.name,
-          contactPhone: value.contactPhone,
-          role: value.role,
         };
       }),
     );

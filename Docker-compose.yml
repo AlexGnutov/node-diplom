@@ -1,0 +1,38 @@
+version: '3.7'
+
+services:
+  mongodb:
+    image: mongo
+    restart: always
+    expose:
+      - 27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USERNAME:-user}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD:-password}
+      - MONGO_INITDB_DATABASE=${DB_NAME:-test_db}
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${DB_USERNAME:-user}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${DB_PASSWORD:-password}
+    depends_on:
+      - mongodb
+
+  booking:
+    build: ./
+    ports:
+      - "80:3000"
+    environment:
+      - SERVER_PORT=${SERVER_PORT:-3000}
+      - DB_USERNAME=${DB_USERNAME:-user}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+      - DB_NAME=${DB_NAME:-test_db}
+      - DB_HOST=mongodb://mongodb:27017
+      - SESSION_SECRET=${SESSION_SECRET:-secret}
+    depends_on:
+      - mongodb

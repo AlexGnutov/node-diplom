@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Post, Query, UseInterceptors, UsePipes} from '@nestjs/common';
+import {Body, Controller, Get, Post, Query, UseGuards, UseInterceptors, UsePipes} from '@nestjs/common';
 import { Roles } from '../roles/roles.decorator';
 import { SearchUserParams, UsersService } from './users.service';
 import { PasswordHashPipe} from "./pipes/password-hash.pipe";
 import { CreateUserInterceptor} from "./interceptors/create-user.interceptor";
 import { Role } from 'src/roles/role.enum';
+import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
+import { RolesGuard } from '../roles/roles.guard';
 
 interface UserCreateDto {
   email: string;
@@ -16,17 +18,21 @@ interface UserCreateDto {
 @Controller('')
 export class UsersController {
   constructor(private usersService: UsersService) {}
-  // 401 - если пользователь не аутентифицирован
-  // 403 - если роль пользователя не соответствует
+
+  // 2.4.1 Create new user
+  @UseGuards(AuthenticatedGuard, RolesGuard)
   @Post('api/admin/users')
   @Roles(Role.Admin) // add roles restriction
   @UseInterceptors(CreateUserInterceptor)
-  @UsePipes(new PasswordHashPipe())
+  @UsePipes(new PasswordHashPipe()) // password hashed in pipe
   createUser(@Body() userCreateData: UserCreateDto) {
     console.log('create user called');
     return this.usersService.create(userCreateData);
   }
 
+  // 2.4.2 Get users list for admin
+  // no interceptor - all done by mongoose means in findAll
+  @UseGuards(AuthenticatedGuard, RolesGuard)
   @Get('api/admin/users')
   @Roles(Role.Admin) // add roles restriction
   getUsersList(@Query() queryData: SearchUserParams) {
@@ -34,6 +40,9 @@ export class UsersController {
     return this.usersService.findAll(queryData);
   }
 
+  // 2.4.2. Get users list for manager
+  // no interceptor - all done by mongoose means in findAll
+  @UseGuards(AuthenticatedGuard, RolesGuard)
   @Get('api/manager/users')
   @Roles(Role.Manager) // add roles restriction
   getClientsList(@Query() queryData: SearchUserParams) {

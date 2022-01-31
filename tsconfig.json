@@ -18,9 +18,6 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "allowJs": false,
-    "paths": {
-
-    }
   },
   "exclude": [
     "node_modules",
