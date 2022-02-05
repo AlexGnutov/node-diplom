@@ -1,0 +1,11 @@
+### Go to admin route:
+GET http://localhost:8080/api/role-check/admin
+Accept: application/json
+
+### Go to client route:
+GET http://localhost:8080/api/role-check/client
+Accept: application/json
+
+### Go to manager route:
+GET http://localhost:8080/api/role-check/manager
+Accept: application/json

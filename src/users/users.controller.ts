@@ -1,8 +1,17 @@
-import {Body, Controller, Get, Post, Query, UseGuards, UseInterceptors, UsePipes} from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  UseGuards,
+  UseInterceptors,
+  UsePipes,
+} from '@nestjs/common';
 import { Roles } from '../roles/roles.decorator';
 import { SearchUserParams, UsersService } from './users.service';
-import { PasswordHashPipe} from "./pipes/password-hash.pipe";
-import { CreateUserInterceptor} from "./interceptors/create-user.interceptor";
+import { PasswordHashPipe } from './pipes/password-hash.pipe';
+import { CreateUserInterceptor } from './interceptors/create-user.interceptor';
 import { Role } from 'src/roles/role.enum';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 import { RolesGuard } from '../roles/roles.guard';

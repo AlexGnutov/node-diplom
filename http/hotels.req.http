@@ -1,0 +1,61 @@
+### admin - addHotel
+POST http://localhost:8080/api/admin/hotels
+Content-Type: application/json
+
+{
+  "title": "Small Hotel",
+  "description": "The smallest hotel ever"
+}
+
+### admin - addHotel
+POST http://localhost:8080/api/admin/hotels
+Content-Type: application/json
+
+{
+"title": "Big Hotel",
+"description": "The biggest hotel ever"
+}
+
+### admin - addHotel
+POST http://localhost:8080/api/admin/hotels
+Content-Type: application/json
+
+{
+"title": "Medium Hotel",
+"description": "The medium hotel"
+}
+
+### admin - addHotel
+POST http://localhost:8080/api/admin/hotels
+Content-Type: application/json
+
+{
+"title": "New Hotel",
+"description": "The new hotel"
+}
+
+### admin - addHotel
+POST http://localhost:8080/api/admin/hotels
+Content-Type: application/json
+
+{
+"title": "One More Hotel",
+"description": "One more hotel"
+}
+
+### admin - getHotelsList
+GET http://localhost:8080/api/admin/hotels
+Accept: application/json
+
+### admin - getHotelsList (limit / offset)
+GET http://localhost:8080/api/admin/hotels?title=Small
+Accept: application/json
+
+### admin - updateHotel
+PUT http://localhost:8080/api/admin/hotels/61e6b20a7dd0154d2f000820
+Content-Type: application/json
+
+{
+"title": "Update Hotel",
+"description": "One more hotel"
+}

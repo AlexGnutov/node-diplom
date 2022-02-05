@@ -1,0 +1,51 @@
+### addHotelRoom - admin
+POST http://localhost:8080/api/admin/hotel-rooms/
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="title"
+Content-Type: text/plain
+
+room 14103
+--WebAppBoundary
+Content-Disposition: form-data; name="description"
+Content-Type: text/plain
+
+Room suitable for bit fun
+--WebAppBoundary
+Content-Disposition: form-data; name="hotelId"
+Content-Type: text/plain
+
+61f7cf909b0ccc9683ea3c4a
+--WebAppBoundary
+Content-Disposition: form-data; name="image"; filename="data.jpeg"
+Content-Type: application/jpeg
+
+< ./data.json
+--WebAppBoundary--
+
+### updateHotelRoom - admin
+PUT http://localhost:8080/api/admin/hotel-rooms/61e7f0dd62bc20dd768bf56d
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="title"
+Content-Type: text/plain
+
+Updated 5 ROOM
+--WebAppBoundary
+Content-Disposition: form-data; name="images"
+Content-Type: text/json
+
+["oldfile18.pdf", "oldfile9.pdf"]
+--WebAppBoundary
+Content-Disposition: form-data; name="image"; filename="data.jpeg"
+Content-Type: application/jpeg
+
+< ./data.json
+--WebAppBoundary--
+
+
+### Get list of rooms
+GET http://localhost:8080/api/common/hotel-rooms
+Accept: application/json

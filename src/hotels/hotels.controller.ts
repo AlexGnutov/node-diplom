@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  ExecutionContext,
   Get,
   Param,
   Post,
@@ -15,9 +14,8 @@ import { CreateHotelDto } from './dto/create-hotel.dto';
 import { HotelsQueryParamsDto } from './dto/hotels-query-params.dto';
 import { ID } from '../common/ID';
 import { HotelDataInterceptor } from './interceptors/hotel-data.interceptor';
-import { Roles, ROLES_KEY } from '../roles/roles.decorator';
+import { Roles } from '../roles/roles.decorator';
 import { Role } from '../roles/role.enum';
-import { Reflector } from '@nestjs/core';
 import { RolesGuard } from '../roles/roles.guard';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 

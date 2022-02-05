@@ -1,0 +1,29 @@
+// ADMIN
+### Get users list (admin):
+GET http://localhost:8080/api/admin/users?limit=2&offset=2&name=bobo
+Accept: application/json
+
+### Get users list (admin):
+GET http://localhost:8080/api/admin/users
+Accept: application/json
+
+### Create new user (admin):
+POST http://localhost:8080/api/admin/users
+Content-Type: application/json
+
+{
+  "email": "m@m",
+  "password": "1",
+  "name": "m",
+  "contactPhone": "+7-800-888-50-50",
+  "role": "manager"
+}
+
+
+### Get users list (manager) - empty:
+GET http://localhost:8080/api/manager/users
+Accept: application/json
+
+### Get users list (manager) - empty:
+GET http://localhost:8080/api/manager/users?limit=2&offset=2
+Accept: application/json

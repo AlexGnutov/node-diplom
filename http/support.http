@@ -1,0 +1,40 @@
+### Create Support Req (client)
+POST http://localhost:8080/api/client/support-requests
+Content-Type: application/json
+
+{
+  "text": "This is a U1 Support Request"
+}
+
+### Get Support Requests list (client)
+GET http://localhost:8080/api/client/support-requests/
+Accept: application/json
+
+### Get Support Requests list (manager)
+GET http://localhost:8080/api/manager/support-requests/
+Accept: application/json
+
+### Get Chat Messages
+GET http://localhost:8080/api/common/support-requests/61f406aa95950ec8e07f121a/messages
+Content-Type: application/json
+
+
+### Add Message to Request
+POST http://localhost:8080/api/common/support-requests/ 61fe2b43c54ffb3a12b0985f/messages
+Content-Type: application/json
+
+{
+  "text": "This is a text Support Request"
+}
+
+### Mark as read (client) or (manager)
+POST http://localhost:8080/api/common/support-requests/61f406aa95950ec8e07f121a/messages/read
+Content-Type: application/json
+
+{
+  "createdBefore": "100"
+}
+
+### Test get counts functions
+GET http://localhost:8080/api/test/61f406aa95950ec8e07f121a
+Accept: application/json

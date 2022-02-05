@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import {
   SupportRequest,
   SupportRequestDocument,
@@ -8,11 +12,13 @@ import { ID } from '../common/ID';
 import { CreateSupportRequestDto } from './dto/create-support-request.dto';
 import { MarkMessagesAsReadDto } from './dto/mark-message-as-read.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Schema } from 'mongoose';
+import { Model } from 'mongoose';
 
 interface ISupportRequestClientService {
   createSupportRequest(data: CreateSupportRequestDto): Promise<SupportRequest>;
+
   markMessagesAsRead(params: MarkMessagesAsReadDto);
+
   getUnreadCount(supportRequest: ID): Promise<Message[]>;
 }
 
@@ -30,21 +36,33 @@ export class SupportClientService implements ISupportRequestClientService {
   async createSupportRequest(
     data: CreateSupportRequestDto,
   ): Promise<SupportRequest> {
+    let newMessage;
+    let newRequest;
     // Get current date
     const dateNow = new Date();
     // Create initial message
-    const newMessage = await this.messageModel.create({
-      author: data.user,
-      sentAt: dateNow,
-      text: data.text,
-    });
+    try {
+      newMessage = await this.messageModel.create({
+        author: data.user,
+        sentAt: dateNow,
+        text: data.text,
+      });
+    } catch (e) {
+      console.log("DB error - can't create new message", e.message);
+      throw new InternalServerErrorException();
+    }
     // Create request and put message inside
-    const newRequest = await this.supportRequestModel.create({
-      user: data.user,
-      createdAt: dateNow,
-      messages: [newMessage],
-      isActive: true,
-    });
+    try {
+      newRequest = await this.supportRequestModel.create({
+        user: data.user,
+        createdAt: dateNow,
+        messages: [newMessage],
+        isActive: true,
+      });
+    } catch (e) {
+      console.log("DB error - can't create new request", e.message);
+      throw new InternalServerErrorException();
+    }
     return newRequest;
   }
 
@@ -52,12 +70,18 @@ export class SupportClientService implements ISupportRequestClientService {
   async markMessagesAsRead(params: MarkMessagesAsReadDto) {
     const currentUser = params.user;
     const requestID = params.supportRequest;
-    const readDate = params.createdBefore || new Date();
+    // const readDate = params.createdBefore || new Date();
+    let request;
     // Get request with messages
-    const request = await this.supportRequestModel
-      .findById(requestID)
-      .populate({ path: 'messages' })
-      .exec();
+    try {
+      request = await this.supportRequestModel
+        .findById(requestID)
+        .populate({ path: 'messages' })
+        .exec();
+    } catch (e) {
+      console.log('DB error: cant find support request');
+      throw new InternalServerErrorException();
+    }
     // Check if current user can access the request
     if (request.user.toString() !== currentUser) {
       console.log("Error: user and currentUser don't match");
@@ -76,12 +100,20 @@ export class SupportClientService implements ISupportRequestClientService {
 
   // Returns messages unread by request user
   async getUnreadCount(supportRequest: ID): Promise<Message[]> {
+    let request;
     // Get request with messages
-    const request = await this.supportRequestModel
-      .findById(supportRequest)
-      .populate({ path: 'messages' })
-      .exec();
+    try {
+      request = await this.supportRequestModel
+        .findById(supportRequest)
+        .populate({ path: 'messages' })
+        .exec();
+    } catch (e) {
+      console.log(e.message);
+      throw new InternalServerErrorException();
+    }
+    // Filter unread messages from support
     const unreadMessages = request.messages.filter((message) => {
+      // Condition: not read, user is not the author
       if (
         !message.readAt &&
         message.author.toString() !== request.user.toString()
@@ -90,6 +122,7 @@ export class SupportClientService implements ISupportRequestClientService {
       }
       return false;
     });
-    return Promise.resolve(unreadMessages);
+    // Return messages list
+    return unreadMessages;
   }
 }

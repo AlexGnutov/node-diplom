@@ -22,9 +22,6 @@ const options = {
 
 const dbURL = process.env.DB_HOST || 'mongodb://localhost:8082';
 
-console.log(options);
-console.log(dbURL);
-
 @Module({
   imports: [
     ConfigModule.forRoot({

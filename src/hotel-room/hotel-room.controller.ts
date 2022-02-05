@@ -4,11 +4,12 @@ import {
   Get,
   Param,
   Post,
-  Put, Query,
-  UploadedFile,
+  Put,
+  Query,
   UploadedFiles,
   UseInterceptors,
-  Request, UseGuards,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -17,13 +18,13 @@ import { editFileName } from '../common/utils/edit-file-name.util';
 import { HotelRoomService } from './hotel-room.service';
 import { AdminHotelRoomInteceptor } from './interceptors/admin-hotel-room.inteceptor';
 import { ID } from '../common/ID';
-import { SearchRoomsParams } from "../common/search-rooms-params";
-import {SearchHotelRoomInterceptor} from "./interceptors/search-hotel-room.interceptor";
-import {ExactHotelRoomInterceptor} from "./interceptors/exact-hotel-room.interceptor";
-import {Role} from "../roles/role.enum";
-import {Roles} from "../roles/roles.decorator";
-import {AuthenticatedGuard} from "../auth/guards/authenticated.guard";
-import {RolesGuard} from "../roles/roles.guard";
+import { SearchRoomsParams } from '../common/search-rooms-params';
+import { SearchHotelRoomInterceptor } from './interceptors/search-hotel-room.interceptor';
+import { ExactHotelRoomInterceptor } from './interceptors/exact-hotel-room.interceptor';
+import { Role } from '../roles/role.enum';
+import { Roles } from '../roles/roles.decorator';
+import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
+import { RolesGuard } from '../roles/roles.guard';
 
 @Controller()
 export class HotelRoomController {

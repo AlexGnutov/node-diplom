@@ -1,0 +1,20 @@
+### client - make reservation
+POST http://localhost:8080/api/client/reservations
+Content-Type: application/json
+
+{
+  "hotelRoom": "61f7cfc49b0ccc9683ea3c55",
+  "startDate": "03-25-22",
+  "endDate": "03-29-22",
+  "hotel": "61f7cf909b0ccc9683ea3c4a"
+}
+
+### user reservations list (client)
+GET http://localhost:8080/api/client/reservations
+Accept: application/json
+
+### delete by user (client)
+DELETE http://localhost:8080/api/client/reservations/61f7dbaec1f5c0ab44bdf470
+
+### delete by manager (manager)
+DELETE http://localhost:8080/api/manager/reservations/1000/61ea5a6004aa7c3b19f821dd

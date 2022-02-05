@@ -1,4 +1,8 @@
-import {Injectable, InternalServerErrorException, UnauthorizedException} from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import {
   SupportRequest,
   SupportRequestDocument,
@@ -10,15 +14,13 @@ import { SendMessageDto } from './dto/send-message.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { SupportSocketGateway } from './gateway/support-socket.gateway';
-import { Role } from "../roles/role.enum";
+import { Role } from '../roles/role.enum';
 
 interface ISupportRequestService {
   findSupportRequests(params: GetChatListParams): Promise<SupportRequest[]>;
   sendMessage(data: SendMessageDto): Promise<Message>;
   getMessages(supportRequest: ID, user: any): Promise<Message[]>;
-  // subscribe(
-  // handler: (supportRequest: SupportRequest, message: Message) => void,
-  // ): () => void;
+  subscribe(supportRequest: SupportRequest, message: Message): void;
 }
 
 @Injectable()
@@ -85,27 +87,48 @@ export class SupportService implements ISupportRequestService {
   }
 
   async sendMessage(data: SendMessageDto): Promise<Message> {
+    let request;
+    let newMessage;
     // Find the support request
-    const request = await this.supportRequestModel.findById(
-      data.supportRequest,
-    );
+    try {
+      request = await this.supportRequestModel.findById(data.supportRequest);
+    } catch (e) {
+      console.log(e.message);
+      throw new InternalServerErrorException();
+    }
     // Create new message document
-    const newMessage = await this.messageModel.create({
-      author: data.author,
-      sentAt: new Date(),
-      text: data.text,
-    });
+    if (request) {
+      try {
+        newMessage = await this.messageModel.create({
+          author: data.author,
+          sentAt: new Date(),
+          text: data.text,
+        });
+      } catch (e) {
+        console.log(e.message);
+        throw new InternalServerErrorException();
+      }
+    }
     // Push the message into request and save it
     request.messages.push(newMessage);
-    request.save();
+    try {
+      request.save();
+    } catch (e) {
+      console.log(e.message);
+      throw new InternalServerErrorException();
+    }
     // Send new message via web-socket
     try {
-      this.gateway.sendNewMessage(request, newMessage);
+      this.subscribe(request, newMessage);
     } catch (e) {
       console.log(e.message);
     }
     // Add author to the message
     await newMessage.populate({ path: 'author' });
     return newMessage;
+  }
+
+  subscribe(supportRequest: SupportRequest, message: Message): void {
+    this.gateway.sendNewMessage(supportRequest, message);
   }
 }

@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Reservation, ReservationDocument } from './schema/reservation.schema';
@@ -9,9 +13,7 @@ import { DateToComStrUtil } from '../common/utils/date-to-compare-string.util';
 
 interface IReservation {
   addReservation(data: ReservationDto): Promise<Reservation>;
-
   removeReservation(id: ID): Promise<void>;
-
   getReservations(
     searchParams: Partial<ReservationSearchOptions>,
   ): Promise<Array<Reservation>>;
@@ -106,9 +108,16 @@ export class ReservationService implements IReservation {
     if (Object.keys(filter).length === 0) {
       filter = null;
     }
-    return await this.reservationModel
-      .find(filter)
-      .populate([{ path: 'hotelId' }, { path: 'roomId' }])
-      .exec();
+    let reservations;
+    try {
+      reservations = await this.reservationModel
+        .find(filter)
+        .populate([{ path: 'hotelId' }, { path: 'roomId' }])
+        .exec();
+    } catch (e) {
+      console.log('DB-error: reservations: getReservations', e.message);
+      throw new InternalServerErrorException();
+    }
+    return reservations;
   }
 }

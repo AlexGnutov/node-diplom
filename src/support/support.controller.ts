@@ -6,7 +6,8 @@ import {
   Post,
   Query,
   Request,
-  UseGuards, UseInterceptors,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { Roles } from '../roles/roles.decorator';
 import { Role } from '../roles/role.enum';
@@ -22,8 +23,8 @@ import { MarkMessagesAsReadDto } from './dto/mark-message-as-read.dto';
 import { CreateSupportRequestInterceptor } from './interceptors/create-support-request.interceptor';
 import { SupportReqListClientInterceptor } from './interceptors/support-req-list-client.interceptor';
 import { SupportReqListManagerInterceptor } from './interceptors/support-req-list-manager.interceptor';
-import {GetMessagesInterceptor} from "./interceptors/get-messages.interceptor";
-import {SendMessageInterceptor} from "./interceptors/send-message.interceptor";
+import { GetMessagesInterceptor } from './interceptors/get-messages.interceptor';
+import { SendMessageInterceptor } from './interceptors/send-message.interceptor';
 
 @Controller()
 export class SupportController {
@@ -68,15 +69,14 @@ export class SupportController {
   @UseInterceptors(SupportReqListManagerInterceptor)
   @Get('api/manager/support-requests')
   @Roles(Role.Manager)
-  getClientsReqList(@Query() queryParams: any) {
+  async getClientsReqList(@Query() queryParams: any) {
     const data: GetChatListParams = {
       user: null,
       isActive: queryParams.isActive,
       offset: queryParams.offset,
       limit: queryParams.limit,
     };
-    console.log(data);
-    return this.supportService.findSupportRequests(data);
+    return await this.supportService.findSupportRequests(data);
   }
 
   // 2.5.4 - List of Request's messages (G-I-R)
@@ -127,7 +127,7 @@ export class SupportController {
       return this.supportEmployeeService.markMessagesAsRead(data);
     }
   }
-  //
+  /*
   // functions test
   @Get('api/test/:reqid')
   async checkUnreadCounts(@Param('reqid') reqId: ID) {
@@ -138,4 +138,6 @@ export class SupportController {
       managers,
     };
   }
+
+   */
 }

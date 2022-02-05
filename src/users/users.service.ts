@@ -1,4 +1,8 @@
-import {BadRequestException, Injectable, ParamData, UnauthorizedException} from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { Model } from 'mongoose';
 import { UserDocument, User } from './user.schema';
 import { ID } from '../common/ID';
@@ -25,7 +29,14 @@ export class UsersService implements IUserService {
 
   // Поле role может принимать одно из следующих значений: client, admin, manager
   public async create(data: Partial<User>): Promise<User> {
-    const exist = await this.findByEmail(data.email);
+    let exist;
+    try {
+      exist = await this.findByEmail(data.email);
+    } catch (e) {
+      console.log("DB-error: User.create - can't create", e.message);
+      throw new InternalServerErrorException();
+    }
+    // Check if user exist - if not = bad Request
     if (exist) {
       throw new BadRequestException();
     }
@@ -33,11 +44,25 @@ export class UsersService implements IUserService {
   }
 
   public async findById(id: ID): Promise<User> {
-    return this.userModel.findOne({ _id: id }).exec();
+    let user;
+    try {
+      user = await this.userModel.findOne({ _id: id }).exec();
+    } catch (e) {
+      console.log("DB-error: User.findById - can't find", e.message);
+      throw new InternalServerErrorException();
+    }
+    return user;
   }
 
   public async findByEmail(email: string): Promise<any> {
-    return await this.userModel.findOne({ email: email }).exec();
+    let user;
+    try {
+      user = await this.userModel.findOne({ email: email }).exec();
+    } catch (e) {
+      console.log("DB-error: User.findByEmail - can't find", e.message);
+      throw new InternalServerErrorException();
+    }
+    return user;
   }
 
   public async findAll(params: SearchUserParams): Promise<User[]> {
@@ -51,7 +76,7 @@ export class UsersService implements IUserService {
     // Set search result fields
     const projection = 'id email name contactPhone';
 
-    // Set regexp filter
+    // Set regexp filter - we use RegExp to allow partial matching
     const filter = {};
     const searchQueries: string[] = ['email', 'name', 'contactPhone'];
     searchQueries.forEach((qname) => {
@@ -63,7 +88,14 @@ export class UsersService implements IUserService {
     if (params['role']) {
       filter['role'] = params['role'];
     }
-    // Return search result array
-    return this.userModel.find(filter, projection, options).exec();
+    // Return search result []
+    let users;
+    try {
+      users = this.userModel.find(filter, projection, options).exec();
+    } catch (e) {
+      console.log("DB-error: User.findAll - can't find", e.message);
+      throw new InternalServerErrorException();
+    }
+    return users;
   }
 }

@@ -11,8 +11,8 @@ import {
   SupportRequest,
   SupportRequestSchema,
 } from './schemas/support-request.schema';
-import {SupportClientService} from "./support-client.service";
-import {SupportEmployeeService} from "./support-employee.service";
+import { SupportClientService } from './support-client.service';
+import { SupportEmployeeService } from './support-employee.service';
 
 @Module({
   imports: [

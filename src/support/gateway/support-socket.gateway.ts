@@ -23,22 +23,26 @@ export class SupportSocketGateway {
     @MessageBody() chatId: string,
     @ConnectedSocket() client: any,
   ) {
-    console.log('User: ', client.request.user);
-    console.log('makes a subscription to chat:');
-    console.log(chatId);
+    // console.log('User: ', client.request.user, 'makes a subscription to chat:');
+    // console.log(chatId);
     client.join(chatId);
-
-    this.server.to(chatId).emit('server-reply', 'Message received');
+    // Check, if room exist and send suitable reply
+    if (this.server.sockets.adapter.rooms.get(chatId)) {
+      this.server.to(chatId).emit('server-reply', `Subscribed to: ${chatId}`);
+    } else {
+      client.emit('server-reply', "Can't subscribe chat room");
+    }
   }
   //
-  sendNewMessage(supportRequest: SupportRequest, message: Message) {
+  sendNewMessage(supportRequest: SupportRequest, message: Message): void {
     const stringToSend = JSON.stringify(message);
     const chatId = supportRequest['_id'].toString();
-    if (this.server.sockets.adapter.rooms[chatId]) {
+    // Check if room exist and send a message
+    if (this.server.sockets.adapter.rooms.get(chatId)) {
       console.log('Web-socket: sending message to Room: ', chatId);
       this.server.to(chatId).emit('server-reply', stringToSend);
     } else {
-      console.log('Web-socket: message NOT sent - no such room');
+      console.log('Web-socket: message NOT sent - no such room', chatId);
     }
   }
 }

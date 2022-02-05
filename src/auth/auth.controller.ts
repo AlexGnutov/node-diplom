@@ -3,7 +3,6 @@ import {
   Post,
   Body,
   UseGuards,
-  Get,
   Request,
   UsePipes,
   UseInterceptors,

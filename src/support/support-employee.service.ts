@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import {
   SupportRequest,
@@ -30,17 +30,24 @@ export class SupportEmployeeService implements ISupportRequestEmployeeService {
         isActive: false,
       });
     } catch (e) {
-      console.log(e.message);
+      console.log("DB-error: closeRequest - can't find request:", e.message);
+      throw new InternalServerErrorException();
     }
   }
 
   async getUnreadCount(supportRequest: ID): Promise<Message[]> {
+    let request;
     // Get request with messages
-    const request = await this.supportRequestModel
-      .findById(supportRequest)
-      .populate({ path: 'messages' })
-      .exec();
-
+    try {
+      request = await this.supportRequestModel
+        .findById(supportRequest)
+        .populate({ path: 'messages' })
+        .exec();
+    } catch (e) {
+      console.log("DB-error: getUnreadCount - can't find request:", e.message);
+      throw new InternalServerErrorException();
+    }
+    // Filter messages with author = request.user and readAt = null
     const unreadMessages = request.messages.filter((message) => {
       if (
         !message.readAt &&
@@ -51,16 +58,25 @@ export class SupportEmployeeService implements ISupportRequestEmployeeService {
       return false;
     });
 
-    return Promise.resolve(unreadMessages);
+    return unreadMessages;
   }
 
   async markMessagesAsRead(params: MarkMessagesAsReadDto) {
-    const readDate = params.createdBefore || new Date();
+    // const readDate = params.createdBefore || new Date();
+    let request;
     // Get request with messages
-    const request = await this.supportRequestModel
-      .findById(params.supportRequest)
-      .populate({ path: 'messages' })
-      .exec();
+    try {
+      request = await this.supportRequestModel
+        .findById(params.supportRequest)
+        .populate({ path: 'messages' })
+        .exec();
+    } catch (e) {
+      console.log(
+        "DB-error: markMessageAsRead: can't find request:",
+        e.message,
+      );
+      throw new InternalServerErrorException();
+    }
     // Select user messages and set them as read
     for (const message of request.messages) {
       if (
