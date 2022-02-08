@@ -69,15 +69,13 @@ export class ReservationController {
     @Param('id') reservationId: ID,
     @Request() req: RequestUserInterface,
   ) {
-    const reservation = await this.reservationService.getReservations({
-      id: reservationId,
-    });
-    if (!reservation[0]) {
+    const reservation = await this.reservationService.findById(reservationId);
+    if (!reservation) {
       throw new BadRequestException("Reservation doesn't exist");
     }
     // Compare user and reservation user
     const userId = req.user.id;
-    if (reservation[0].userId.toString() !== userId) {
+    if (reservation.userId.toString() !== userId) {
       throw new ForbiddenException();
     }
     return this.reservationService.removeReservation(reservationId);
@@ -95,18 +93,16 @@ export class ReservationController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Delete('api/manager/reservations/:userId/:reservationId')
   @Roles(Role.Manager) // add roles restriction
-  deleteClientReservation(
+  async deleteClientReservation(
     @Param('userId') userId: ID,
     @Param('reservationId') reservationId: ID,
   ) {
-    const reservation = this.reservationService.getReservations({
-      id: reservationId,
-    });
-    if (!reservation[0]) {
+    const reservation = await this.reservationService.findById(reservationId);
+    if (!reservation) {
       throw new BadRequestException();
     }
     // Compare user and reservation user
-    if (reservation[0].userId.toString() !== userId) {
+    if (reservation.userId.toString() !== userId) {
       throw new BadRequestException();
     }
     return this.reservationService.removeReservation(reservationId);

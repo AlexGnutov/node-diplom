@@ -17,6 +17,7 @@ interface IReservation {
   getReservations(
     searchParams: Partial<ReservationSearchOptions>,
   ): Promise<Array<Reservation>>;
+  findById(id: ID): Promise<Reservation>;
 }
 
 @Injectable()
@@ -70,7 +71,7 @@ export class ReservationService implements IReservation {
 
   public async removeReservation(id: ID): Promise<void> {
     try {
-      const deleted = await this.reservationModel.findByIdAndDelete(id).exec();
+      await this.reservationModel.findByIdAndDelete(id).exec();
     } catch (e) {
       throw new BadRequestException("DB-error: can't delete reservation");
     }
@@ -80,18 +81,7 @@ export class ReservationService implements IReservation {
   public async getReservations(
     searchParams: Partial<ReservationSearchOptions>,
   ): Promise<Array<Reservation>> {
-    // If id is given - find by id
-    if (searchParams.id) {
-      try {
-        return await this.reservationModel
-          .find({ _id: searchParams.id })
-          .populate([{ path: 'hotelId' }, { path: 'roomId' }])
-          .exec();
-      } catch (e) {
-        throw new BadRequestException("DB-error: getReservations - can't get");
-      }
-    }
-    // If no id is given - find by other options
+    // Finding by ID in separate function - see below
     let filter = {};
     if (searchParams.user) {
       filter['user'] = searchParams.user;
@@ -111,5 +101,16 @@ export class ReservationService implements IReservation {
       );
     }
     return reservations;
+  }
+
+  async findById(id: ID): Promise<Reservation> {
+    try {
+      return await this.reservationModel
+        .findById(id)
+        .populate([{ path: 'hotelId' }, { path: 'roomId' }])
+        .exec();
+    } catch (e) {
+      throw new BadRequestException("DB-error: findById - can't find");
+    }
   }
 }

@@ -4,6 +4,7 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  WsException,
 } from '@nestjs/websockets';
 import { AuthService } from '../../auth/auth.service';
 import { InternalServerErrorException, UseGuards } from '@nestjs/common';
@@ -41,7 +42,7 @@ export class SupportSocketGateway {
     if (this.server.sockets.adapter.rooms.get(chatId)) {
       this.server.to(chatId).emit('server-reply', stringToSend);
     } else {
-      throw new InternalServerErrorException(
+      throw new WsException(
         `Web-socket: message NOT sent - no such room: ${chatId}`,
       );
     }
