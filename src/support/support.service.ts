@@ -15,11 +15,12 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { SupportSocketGateway } from './gateway/support-socket.gateway';
 import { Role } from '../roles/role.enum';
+import { UserInterface } from '../common/user-interface';
 
 interface ISupportRequestService {
   findSupportRequests(params: GetChatListParams): Promise<SupportRequest[]>;
   sendMessage(data: SendMessageDto): Promise<Message>;
-  getMessages(supportRequest: ID, user: any): Promise<Message[]>;
+  getMessages(supportRequest: ID, user: UserInterface): Promise<Message[]>;
   subscribe(supportRequest: SupportRequest, message: Message): void;
 }
 
@@ -59,12 +60,16 @@ export class SupportService implements ISupportRequestService {
         .populate({ path: 'user' })
         .exec();
     } catch (e) {
-      console.log('DB error - cant get Request List');
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        'DB error - cant get Request List',
+      );
     }
   }
 
-  async getMessages(supportRequest: ID, user: any): Promise<Message[]> {
+  async getMessages(
+    supportRequest: ID,
+    user: UserInterface,
+  ): Promise<Message[]> {
     try {
       const chat = await this.supportRequestModel
         .findById(supportRequest)
@@ -75,14 +80,13 @@ export class SupportService implements ISupportRequestService {
         .exec();
       // Check if user is author of the request, when role = user
       if (user.role === Role.User && chat.user.toString() !== user.id) {
-        console.log('User is not the owner of request');
-        throw new UnauthorizedException();
+        throw new UnauthorizedException('User is not the owner of request');
       }
-      //**//
       return chat.messages;
     } catch (e) {
-      console.log('DB error - cant get chat messages');
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        'DB error - cant get chat messages',
+      );
     }
   }
 
@@ -93,8 +97,9 @@ export class SupportService implements ISupportRequestService {
     try {
       request = await this.supportRequestModel.findById(data.supportRequest);
     } catch (e) {
-      console.log(e.message);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        "DB-error: sendMessage - can't find support request",
+      );
     }
     // Create new message document
     if (request) {
@@ -105,8 +110,9 @@ export class SupportService implements ISupportRequestService {
           text: data.text,
         });
       } catch (e) {
-        console.log(e.message);
-        throw new InternalServerErrorException();
+        throw new InternalServerErrorException(
+          "DB-error: sendMessage - can't create new message",
+        );
       }
     }
     // Push the message into request and save it
@@ -114,14 +120,17 @@ export class SupportService implements ISupportRequestService {
     try {
       request.save();
     } catch (e) {
-      console.log(e.message);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        "DB-error: sendMessage - can't save message",
+      );
     }
     // Send new message via web-socket
     try {
       this.subscribe(request, newMessage);
     } catch (e) {
-      console.log(e.message);
+      throw new InternalServerErrorException(
+        "DB-error: sendMessage - can't send WS message",
+      );
     }
     // Add author to the message
     await newMessage.populate({ path: 'author' });

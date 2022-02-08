@@ -36,7 +36,6 @@ export class ReservationService implements IReservation {
     existReservations.forEach((reservation) => {
       reservedDates.push([reservation.dateStart, reservation.dateEnd]);
     });
-    console.log(reservedDates);
     // Check if new reservation is possible
     reservedDates.forEach((datePair) => {
       if (
@@ -45,7 +44,9 @@ export class ReservationService implements IReservation {
       ) {
         return;
       } else {
-        throw new BadRequestException();
+        throw new BadRequestException(
+          "Error: can't make reservation, dates are not free",
+        );
       }
     });
     // Create reservation after dates check
@@ -58,29 +59,20 @@ export class ReservationService implements IReservation {
     };
     try {
       const reservation = await this.reservationModel.create(reservationData);
-      console.log(reservation);
       return await reservation.populate([
         { path: 'hotelId' },
         { path: 'roomId' },
       ]);
     } catch (e) {
-      console.log(e.message);
-      throw new BadRequestException();
+      throw new BadRequestException("DB-error: can't create reservation");
     }
   }
 
   public async removeReservation(id: ID): Promise<void> {
     try {
       const deleted = await this.reservationModel.findByIdAndDelete(id).exec();
-      if (deleted) {
-        console.log('Deleted: ');
-        console.log(deleted);
-        return;
-      }
-      console.log('Nothing to delete');
     } catch (e) {
-      console.log(e.message);
-      throw new BadRequestException();
+      throw new BadRequestException("DB-error: can't delete reservation");
     }
     return;
   }
@@ -96,8 +88,7 @@ export class ReservationService implements IReservation {
           .populate([{ path: 'hotelId' }, { path: 'roomId' }])
           .exec();
       } catch (e) {
-        console.log(e.message);
-        throw new BadRequestException();
+        throw new BadRequestException("DB-error: getReservations - can't get");
       }
     }
     // If no id is given - find by other options
@@ -115,8 +106,9 @@ export class ReservationService implements IReservation {
         .populate([{ path: 'hotelId' }, { path: 'roomId' }])
         .exec();
     } catch (e) {
-      console.log('DB-error: reservations: getReservations', e.message);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        'DB-error: reservations: getReservations',
+      );
     }
     return reservations;
   }

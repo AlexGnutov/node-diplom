@@ -8,7 +8,6 @@ export class UserRegisterPipe implements PipeTransform {
     const salt = 10;
     value.passwordHash = await bcrypt.hash(value.password, salt);
     value.role = Role.User;
-    // console.log('from pipe: ', value);
     return value;
   }
 }

@@ -16,7 +16,6 @@ export class GetMessagesInterceptor implements NestInterceptor {
     return next.handle().pipe(
       map((value) =>
         value.map((message) => {
-          // console.log(message);
           return {
             id: message._id.toString(),
             createdAt: message.sentAt,

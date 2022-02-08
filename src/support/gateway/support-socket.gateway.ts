@@ -6,7 +6,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { AuthService } from '../../auth/auth.service';
-import { UseGuards } from '@nestjs/common';
+import { InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { WsAuthenticatedGuard } from './guards/ws.authentificated.guard';
 import { SupportRequest } from '../schemas/support-request.schema';
 import { Message } from '../schemas/message.schema';
@@ -39,10 +39,11 @@ export class SupportSocketGateway {
     const chatId = supportRequest['_id'].toString();
     // Check if room exist and send a message
     if (this.server.sockets.adapter.rooms.get(chatId)) {
-      console.log('Web-socket: sending message to Room: ', chatId);
       this.server.to(chatId).emit('server-reply', stringToSend);
     } else {
-      console.log('Web-socket: message NOT sent - no such room', chatId);
+      throw new InternalServerErrorException(
+        `Web-socket: message NOT sent - no such room: ${chatId}`,
+      );
     }
   }
 }

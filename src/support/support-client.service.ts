@@ -16,9 +16,7 @@ import { Model } from 'mongoose';
 
 interface ISupportRequestClientService {
   createSupportRequest(data: CreateSupportRequestDto): Promise<SupportRequest>;
-
   markMessagesAsRead(params: MarkMessagesAsReadDto);
-
   getUnreadCount(supportRequest: ID): Promise<Message[]>;
 }
 
@@ -48,8 +46,9 @@ export class SupportClientService implements ISupportRequestClientService {
         text: data.text,
       });
     } catch (e) {
-      console.log("DB error - can't create new message", e.message);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        "DB error - can't create new message",
+      );
     }
     // Create request and put message inside
     try {
@@ -60,8 +59,9 @@ export class SupportClientService implements ISupportRequestClientService {
         isActive: true,
       });
     } catch (e) {
-      console.log("DB error - can't create new request", e.message);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        "DB error - can't create new request",
+      );
     }
     return newRequest;
   }
@@ -70,7 +70,6 @@ export class SupportClientService implements ISupportRequestClientService {
   async markMessagesAsRead(params: MarkMessagesAsReadDto) {
     const currentUser = params.user;
     const requestID = params.supportRequest;
-    // const readDate = params.createdBefore || new Date();
     let request;
     // Get request with messages
     try {
@@ -79,13 +78,15 @@ export class SupportClientService implements ISupportRequestClientService {
         .populate({ path: 'messages' })
         .exec();
     } catch (e) {
-      console.log('DB error: cant find support request');
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        'DB error: cant find support request',
+      );
     }
     // Check if current user can access the request
     if (request.user.toString() !== currentUser) {
-      console.log("Error: user and currentUser don't match");
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(
+        "Error: user and currentUser don't match",
+      );
     }
     // Select messages from support with "readAt = null"
     for (const message of request.messages) {
@@ -108,8 +109,9 @@ export class SupportClientService implements ISupportRequestClientService {
         .populate({ path: 'messages' })
         .exec();
     } catch (e) {
-      console.log(e.message);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        "DB-error: getUnreadCount - can't load request",
+      );
     }
     // Filter unread messages from support
     const unreadMessages = request.messages.filter((message) => {

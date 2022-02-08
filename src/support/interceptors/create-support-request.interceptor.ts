@@ -15,7 +15,6 @@ export class CreateSupportRequestInterceptor implements NestInterceptor {
     // Formats Support Request data created by Support Client Service
     return next.handle().pipe(
       map((value) => {
-        // console.log(value);
         return [
           {
             id: value._id.toString(),

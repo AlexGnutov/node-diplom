@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -6,10 +7,10 @@ import {
   Post,
   Put,
   Query,
-  UploadedFiles,
-  UseInterceptors,
   Request,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -25,6 +26,7 @@ import { Role } from '../roles/role.enum';
 import { Roles } from '../roles/roles.decorator';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 import { RolesGuard } from '../roles/roles.guard';
+import { RequestUserInterface } from '../common/request-user-interface';
 
 @Controller()
 export class HotelRoomController {
@@ -34,9 +36,9 @@ export class HotelRoomController {
   @UseInterceptors(SearchHotelRoomInterceptor)
   hotelRoomsSearch(
     @Query() queryParams: SearchRoomsParams,
-    @Request() req: any,
+    @Request() req: RequestUserInterface,
   ) {
-    if (!req.user || req.user['role'] === 'client') {
+    if (!req.user || req.user['role'] === Role.User) {
       queryParams.isEnabled = true;
     }
     return this.hotelRoomService.search(queryParams);
@@ -98,13 +100,12 @@ export class HotelRoomController {
         const oldImages: string[] = JSON.parse(dataFields.images);
         dataFields.images = oldImages.concat(newImages);
       } catch (e) {
-        console.log(e.message);
+        throw new BadRequestException(e.message);
       }
     } else {
       // If no old images data was sent - just take file names
       dataFields.images = newImages;
     }
-    // console.log(dataFields.images);
     const roomData = { ...dataFields };
     return this.hotelRoomService.update(id, roomData);
   }

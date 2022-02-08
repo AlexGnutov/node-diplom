@@ -27,18 +27,20 @@ interface IUserService {
 export class UsersService implements IUserService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  // Поле role может принимать одно из следующих значений: client, admin, manager
   public async create(data: Partial<User>): Promise<User> {
     let exist;
     try {
       exist = await this.findByEmail(data.email);
     } catch (e) {
-      console.log("DB-error: User.create - can't create", e.message);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        "DB-error: User.create - can't create",
+      );
     }
-    // Check if user exist - if not = bad Request
+    // Check if user exist - if yes = bad Request
     if (exist) {
-      throw new BadRequestException();
+      throw new BadRequestException(
+        "Can't register: email is already occupied",
+      );
     }
     return this.userModel.create(data);
   }
@@ -48,8 +50,9 @@ export class UsersService implements IUserService {
     try {
       user = await this.userModel.findOne({ _id: id }).exec();
     } catch (e) {
-      console.log("DB-error: User.findById - can't find", e.message);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        "DB-error: User.findById - can't find",
+      );
     }
     return user;
   }
@@ -59,8 +62,9 @@ export class UsersService implements IUserService {
     try {
       user = await this.userModel.findOne({ email: email }).exec();
     } catch (e) {
-      console.log("DB-error: User.findByEmail - can't find", e.message);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        "DB-error: User.findByEmail - can't find",
+      );
     }
     return user;
   }
@@ -72,10 +76,8 @@ export class UsersService implements IUserService {
       limit: limit ? limit : null,
       skip: offset ? offset : null,
     };
-
     // Set search result fields
     const projection = 'id email name contactPhone';
-
     // Set regexp filter - we use RegExp to allow partial matching
     const filter = {};
     const searchQueries: string[] = ['email', 'name', 'contactPhone'];
@@ -93,8 +95,9 @@ export class UsersService implements IUserService {
     try {
       users = this.userModel.find(filter, projection, options).exec();
     } catch (e) {
-      console.log("DB-error: User.findAll - can't find", e.message);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        "DB-error: User.findAll - can't find",
+      );
     }
     return users;
   }

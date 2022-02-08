@@ -24,8 +24,6 @@ export class SessionAdapter extends IoAdapter {
     server.use(wrap(passport.session()));
 
     server.use(function (socket, next) {
-      console.log('from adapter', socket.request['session']);
-      console.log('from adapter', socket.request['user'] || 'No user assigned');
       next();
     });
 
@@ -33,7 +31,7 @@ export class SessionAdapter extends IoAdapter {
       if (socket.request['user']) {
         next();
       } else {
-        next(new Error('unauthorized'));
+        next(new Error('Unauthorized'));
       }
     });
 

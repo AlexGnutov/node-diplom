@@ -25,6 +25,8 @@ import { SupportReqListClientInterceptor } from './interceptors/support-req-list
 import { SupportReqListManagerInterceptor } from './interceptors/support-req-list-manager.interceptor';
 import { GetMessagesInterceptor } from './interceptors/get-messages.interceptor';
 import { SendMessageInterceptor } from './interceptors/send-message.interceptor';
+import { SendMessageDto } from './dto/send-message.dto';
+import { RequestUserInterface } from '../common/request-user-interface';
 
 @Controller()
 export class SupportController {
@@ -39,12 +41,14 @@ export class SupportController {
   @UseInterceptors(CreateSupportRequestInterceptor)
   @Post('api/client/support-requests')
   @Roles(Role.User)
-  createSupportRequest(@Body() body, @Request() req) {
+  createSupportRequest(
+    @Body() body: CreateSupportRequestDto,
+    @Request() req: RequestUserInterface,
+  ) {
     const data: CreateSupportRequestDto = {
       user: req.user.id,
       text: body.text,
     };
-    // console.log(data);
     return this.supportClientService.createSupportRequest(data);
   }
 
@@ -53,14 +57,16 @@ export class SupportController {
   @UseInterceptors(SupportReqListClientInterceptor)
   @Get('api/client/support-requests')
   @Roles(Role.User)
-  getMySupportRequestsList(@Query() queryParams, @Request() req) {
+  getMySupportRequestsList(
+    @Query() queryParams,
+    @Request() req: RequestUserInterface,
+  ) {
     const data: GetChatListParams = {
       user: req.user.id,
       isActive: queryParams.isActive,
       offset: queryParams.offset,
       limit: queryParams.limit,
     };
-    // console.log(data);
     return this.supportService.findSupportRequests(data);
   }
 
@@ -84,7 +90,10 @@ export class SupportController {
   @UseInterceptors(GetMessagesInterceptor)
   @Get('api/common/support-requests/:id/messages')
   @Roles(Role.Manager, Role.User)
-  getChatMessages(@Param('id') id: string, @Request() req: any) {
+  getChatMessages(
+    @Param('id') id: string,
+    @Request() req: RequestUserInterface,
+  ) {
     return this.supportService.getMessages(id, req.user);
   }
 
@@ -95,8 +104,8 @@ export class SupportController {
   @Roles(Role.Manager, Role.User)
   sendChatMessage(
     @Param('id') id: string,
-    @Request() req: any,
-    @Body() body: any,
+    @Request() req: RequestUserInterface,
+    @Body() body: SendMessageDto,
   ) {
     const data = {
       author: req.user.id,
@@ -111,8 +120,8 @@ export class SupportController {
   @Post('api/common/support-requests/:id/messages/read')
   @Roles(Role.Manager, Role.User)
   markChatMessagesAsRead(
-    @Body() body: any,
-    @Request() req: any,
+    @Body() body: MarkMessagesAsReadDto,
+    @Request() req: RequestUserInterface,
     @Param('id') supportReqId: ID,
   ) {
     const data: MarkMessagesAsReadDto = {
@@ -127,17 +136,4 @@ export class SupportController {
       return this.supportEmployeeService.markMessagesAsRead(data);
     }
   }
-  /*
-  // functions test
-  @Get('api/test/:reqid')
-  async checkUnreadCounts(@Param('reqid') reqId: ID) {
-    const clients = await this.supportClientService.getUnreadCount(reqId);
-    const managers = await this.supportEmployeeService.getUnreadCount(reqId);
-    return {
-      clients,
-      managers,
-    };
-  }
-
-   */
 }

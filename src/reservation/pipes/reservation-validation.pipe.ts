@@ -17,12 +17,11 @@ export class ReservationValidationPipe implements PipeTransform {
       dateStart.toString() === 'Invalid Date' ||
       dateEnd.toString() === 'Invalid Date'
     ) {
-      console.log('Dates are bad!');
-      throw new BadRequestException();
+      throw new BadRequestException("Incorrect dates values - can't parse");
     }
 
     if (!ObjectId.isValid(data.hotelRoom)) {
-      throw new BadRequestException();
+      throw new BadRequestException("Incorrect ID value - can't parse");
     }
 
     const room = data.hotelRoom;

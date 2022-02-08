@@ -5,7 +5,7 @@ export type UserDocument = User & Document;
 
 @Schema()
 export class User {
-  @Prop({ required: true }) // уникальное - да
+  @Prop({ required: true })
   email: string;
 
   @Prop({ required: true })
@@ -17,7 +17,7 @@ export class User {
   @Prop()
   contactPhone: string;
 
-  @Prop({ required: true }) // по-умолчанию - client
+  @Prop({ required: true })
   role: string;
 }
 

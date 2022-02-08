@@ -15,7 +15,7 @@ export class DatesValidationPipe implements PipeTransform {
       dateStart.toString() === 'Invalid Date' ||
       dateEnd.toString() === 'Invalid Date'
     ) {
-      throw new BadRequestException();
+      throw new BadRequestException("Incorrect dates values - can't parse");
     }
     return {
       dateStart,

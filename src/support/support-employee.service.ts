@@ -30,8 +30,9 @@ export class SupportEmployeeService implements ISupportRequestEmployeeService {
         isActive: false,
       });
     } catch (e) {
-      console.log("DB-error: closeRequest - can't find request:", e.message);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        "DB-error: closeRequest - can't find request:",
+      );
     }
   }
 
@@ -44,8 +45,9 @@ export class SupportEmployeeService implements ISupportRequestEmployeeService {
         .populate({ path: 'messages' })
         .exec();
     } catch (e) {
-      console.log("DB-error: getUnreadCount - can't find request:", e.message);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        "DB-error: getUnreadCount - can't find request:",
+      );
     }
     // Filter messages with author = request.user and readAt = null
     const unreadMessages = request.messages.filter((message) => {
@@ -62,7 +64,6 @@ export class SupportEmployeeService implements ISupportRequestEmployeeService {
   }
 
   async markMessagesAsRead(params: MarkMessagesAsReadDto) {
-    // const readDate = params.createdBefore || new Date();
     let request;
     // Get request with messages
     try {
@@ -71,11 +72,9 @@ export class SupportEmployeeService implements ISupportRequestEmployeeService {
         .populate({ path: 'messages' })
         .exec();
     } catch (e) {
-      console.log(
+      throw new InternalServerErrorException(
         "DB-error: markMessageAsRead: can't find request:",
-        e.message,
       );
-      throw new InternalServerErrorException();
     }
     // Select user messages and set them as read
     for (const message of request.messages) {

@@ -28,8 +28,9 @@ export class HotelsService implements IHotelService {
         createdAt: new Date(),
       });
     } catch (e) {
-      console.log("DB-error: Hotel:create - can't create", e.message);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        "DB-error: Hotel:create - can't create",
+      );
     }
     return hotel;
   }
@@ -39,8 +40,9 @@ export class HotelsService implements IHotelService {
     try {
       hotel = this.hotelModel.findById(id).exec();
     } catch (e) {
-      console.log("DB-error: Hotel:findById - can't find", e.message);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        "DB-error: Hotel:findById - can't find",
+      );
     }
     return hotel;
   }
@@ -61,8 +63,9 @@ export class HotelsService implements IHotelService {
     try {
       hotels = this.hotelModel.find(filter, projection, options).exec();
     } catch (e) {
-      console.log("DB-error: Hotel:search - can't find", e.message);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        "DB-error: Hotel:search - can't find",
+      );
     }
     return hotels;
   }
@@ -76,8 +79,9 @@ export class HotelsService implements IHotelService {
         .findOneAndUpdate({ id }, data, { new: true })
         .exec();
     } catch (e) {
-      console.log("DB-error: Hotel:update - can't do", e.message);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        "DB-error: Hotel:update - can't do",
+      );
     }
     return updated;
   }

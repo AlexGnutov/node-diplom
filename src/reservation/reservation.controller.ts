@@ -23,6 +23,7 @@ import { Role } from '../roles/role.enum';
 import { Roles } from '../roles/roles.decorator';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 import { RolesGuard } from '../roles/roles.guard';
+import { RequestUserInterface } from '../common/request-user-interface';
 
 @Controller()
 export class ReservationController {
@@ -36,15 +37,16 @@ export class ReservationController {
   @Roles(Role.User) // add roles restriction
   @UseInterceptors(CreateReservationInterceptor) // format output data
   @UsePipes(new ReservationValidationPipe()) // validate input data
-  async createMyReservation(@Body() data: ReservationDto, @Request() req: any) {
+  async createMyReservation(
+    @Body() data: ReservationDto,
+    @Request() req: RequestUserInterface,
+  ) {
     // Add user id from req(session)
     data.user = req.user.id;
     // Check if room and hotel exist together
     const roomExist = await this.hotelRoomService.findById(data.room);
-    console.log(roomExist, roomExist.hotelId[0]['_id'].toString());
     if (!roomExist || roomExist.hotelId[0]['_id'].toString() !== data.hotel) {
-      console.log('room not exist');
-      throw new BadRequestException();
+      throw new BadRequestException("Room or hotel doesn't exist");
     }
     // Try to add reservation:
     return await this.reservationService.addReservation(data);
@@ -54,7 +56,7 @@ export class ReservationController {
   @Get('api/client/reservations')
   @Roles(Role.User) // add roles restriction
   @UseInterceptors(ReservationListInterceptor) // format output data
-  myReservationsList(@Request() req: any) {
+  myReservationsList(@Request() req: RequestUserInterface) {
     const user = req.user.id;
     const searchParams = { user };
     return this.reservationService.getReservations(searchParams);
@@ -65,14 +67,13 @@ export class ReservationController {
   @Roles(Role.User) // add roles restriction
   async deleteMyReservation(
     @Param('id') reservationId: ID,
-    @Request() req: any,
+    @Request() req: RequestUserInterface,
   ) {
     const reservation = await this.reservationService.getReservations({
       id: reservationId,
     });
-    console.log(reservation);
     if (!reservation[0]) {
-      throw new BadRequestException();
+      throw new BadRequestException("Reservation doesn't exist");
     }
     // Compare user and reservation user
     const userId = req.user.id;

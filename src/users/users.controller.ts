@@ -35,7 +35,6 @@ export class UsersController {
   @UseInterceptors(CreateUserInterceptor)
   @UsePipes(new PasswordHashPipe()) // password hashed in pipe
   createUser(@Body() userCreateData: UserCreateDto) {
-    console.log('create user called');
     return this.usersService.create(userCreateData);
   }
 

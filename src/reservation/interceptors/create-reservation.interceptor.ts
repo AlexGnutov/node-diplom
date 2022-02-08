@@ -16,7 +16,6 @@ export class CreateReservationInterceptor implements NestInterceptor {
     // Formats Hotel Room Data created by HotelRoomService
     return next.handle().pipe(
       map((reservation) => {
-        console.log(reservation);
         return {
           startDate: reservation.dateStart.toISOString(),
           endDate: reservation.dateEnd.toISOString(),
