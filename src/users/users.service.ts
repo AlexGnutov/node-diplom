@@ -1,12 +1,13 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { Model } from 'mongoose';
-import { UserDocument, User } from './user.schema';
 import { ID } from '../common/ID';
-import { InjectModel } from '@nestjs/mongoose';
+import { User } from './schema/user.interface';
+import { UserModelName } from '../common/constants';
 
 export interface SearchUserParams {
   limit: number;
@@ -25,7 +26,10 @@ interface IUserService {
 
 @Injectable()
 export class UsersService implements IUserService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @Inject(UserModelName)
+    private userModel: Model<User>,
+  ) {}
 
   public async create(data: Partial<User>): Promise<User> {
     let exist;
@@ -33,6 +37,7 @@ export class UsersService implements IUserService {
       exist = await this.findByEmail(data.email);
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         "DB-error: User.create - can't create",
       );
     }
@@ -51,6 +56,7 @@ export class UsersService implements IUserService {
       user = await this.userModel.findOne({ _id: id }).exec();
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         "DB-error: User.findById - can't find",
       );
     }
@@ -63,6 +69,7 @@ export class UsersService implements IUserService {
       user = await this.userModel.findOne({ email: email }).exec();
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         "DB-error: User.findByEmail - can't find",
       );
     }
@@ -96,6 +103,7 @@ export class UsersService implements IUserService {
       users = this.userModel.find(filter, projection, options).exec();
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         "DB-error: User.findAll - can't find",
       );
     }

@@ -1,10 +1,14 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { Model } from 'mongoose';
-import { Hotel, HotelDocument } from './schema/hotel.schema';
+import { Hotel } from './schema/hotel.interface';
 import { ID } from '../common/ID';
 import { CreateHotelDto } from './dto/create-hotel.dto';
 import { HotelsQueryParamsDto } from './dto/hotels-query-params.dto';
+import { HotelModelName, UserModelName } from '../common/constants';
 
 interface IHotelService {
   create(data: CreateHotelDto): Promise<Hotel>;
@@ -16,7 +20,8 @@ interface IHotelService {
 @Injectable()
 export class HotelsService implements IHotelService {
   constructor(
-    @InjectModel(Hotel.name) private hotelModel: Model<HotelDocument>,
+    @Inject(HotelModelName)
+    private hotelModel: Model<Hotel>,
   ) {}
 
   public async create(data: CreateHotelDto): Promise<Hotel> {
@@ -29,6 +34,7 @@ export class HotelsService implements IHotelService {
       });
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         "DB-error: Hotel:create - can't create",
       );
     }
@@ -41,6 +47,7 @@ export class HotelsService implements IHotelService {
       hotel = this.hotelModel.findById(id).exec();
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         "DB-error: Hotel:findById - can't find",
       );
     }
@@ -64,6 +71,7 @@ export class HotelsService implements IHotelService {
       hotels = this.hotelModel.find(filter, projection, options).exec();
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         "DB-error: Hotel:search - can't find",
       );
     }
@@ -80,6 +88,7 @@ export class HotelsService implements IHotelService {
         .exec();
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         "DB-error: Hotel:update - can't do",
       );
     }

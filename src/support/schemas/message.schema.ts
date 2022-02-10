@@ -1,26 +1,12 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-import { ID } from '../../common/ID';
+import { Schema } from 'mongoose';
 import * as mongoose from 'mongoose';
 
-export type MessageDocument = Message & Document;
-
-@Schema()
-export class Message {
-  @Prop({
+export const MessageSchema = new Schema({
+  author: {
     required: true,
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  })
-  author: ID;
-
-  @Prop({ required: true })
-  sentAt: Date;
-
-  @Prop({ required: true })
-  text: string;
-
-  @Prop({ default: null })
-  readAt: Date | null; // message is read, when this field is not empty
-}
-
-export const MessageSchema = SchemaFactory.createForClass(Message);
+  },
+  sentAt: { type: Date, required: true },
+  text: { type: String, required: true },
+  readAt: { type: Date, default: null },
+});

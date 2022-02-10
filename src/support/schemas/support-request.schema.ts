@@ -1,31 +1,14 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-import { ID } from '../../common/ID';
-import { Message } from './message.schema';
-import * as mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
-export type SupportRequestDocument = SupportRequest & Document;
-
-@Schema()
-export class SupportRequest {
-  @Prop({
+export const SupportRequestSchema = new Schema({
+  user: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     required: true,
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  })
-  user: ID;
-
-  @Prop({ required: true })
-  createdAt: Date;
-
-  @Prop({
+  },
+  createdAt: { type: Date, required: true },
+  messages: {
+    type: [{ type: [Schema.Types.ObjectId], ref: 'Message' }],
     required: true,
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }],
-  })
-  messages: Message[];
-
-  @Prop()
-  isActive: boolean;
-}
-
-export const SupportRequestSchema =
-  SchemaFactory.createForClass(SupportRequest);
+  },
+  isActive: { type: Boolean },
+});

@@ -1,15 +1,16 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Reservation, ReservationDocument } from './schema/reservation.schema';
+import { Reservation } from './schema/reservation.interface';
 import { ID } from '../common/ID';
 import { ReservationSearchOptions } from './dto/reservation-search-options';
 import { ReservationDto } from './dto/reservation.dto';
 import { DateToComStrUtil } from '../common/utils/date-to-compare-string.util';
+import { ReservationModelName } from '../common/constants';
 
 interface IReservation {
   addReservation(data: ReservationDto): Promise<Reservation>;
@@ -23,8 +24,8 @@ interface IReservation {
 @Injectable()
 export class ReservationService implements IReservation {
   constructor(
-    @InjectModel(Reservation.name)
-    private reservationModel: Model<ReservationDocument>,
+    @Inject(ReservationModelName)
+    private reservationModel: Model<Reservation>,
   ) {}
 
   public async addReservation(data: ReservationDto): Promise<Reservation> {
@@ -65,7 +66,7 @@ export class ReservationService implements IReservation {
         { path: 'roomId' },
       ]);
     } catch (e) {
-      throw new BadRequestException("DB-error: can't create reservation");
+      throw new BadRequestException(e, "DB-error: can't create reservation");
     }
   }
 
@@ -73,7 +74,7 @@ export class ReservationService implements IReservation {
     try {
       await this.reservationModel.findByIdAndDelete(id).exec();
     } catch (e) {
-      throw new BadRequestException("DB-error: can't delete reservation");
+      throw new BadRequestException(e, "DB-error: can't delete reservation");
     }
     return;
   }
@@ -97,6 +98,7 @@ export class ReservationService implements IReservation {
         .exec();
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         'DB-error: reservations: getReservations',
       );
     }
@@ -110,7 +112,7 @@ export class ReservationService implements IReservation {
         .populate([{ path: 'hotelId' }, { path: 'roomId' }])
         .exec();
     } catch (e) {
-      throw new BadRequestException("DB-error: findById - can't find");
+      throw new BadRequestException(e, "DB-error: findById - can't find");
     }
   }
 }

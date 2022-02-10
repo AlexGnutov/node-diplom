@@ -1,14 +1,12 @@
 import { Module } from '@nestjs/common';
 import { HotelsService } from './hotels.service';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Hotel, HotelSchema } from './schema/hotel.schema';
 import { HotelsController } from './hotels.controller';
+import { DatabaseModule } from '../database/database.module';
+import { HotelsProviders } from './hotels.providers';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: Hotel.name, schema: HotelSchema }]),
-  ],
-  providers: [HotelsService],
+  imports: [DatabaseModule],
+  providers: [HotelsService, ...HotelsProviders],
   exports: [HotelsService],
   controllers: [HotelsController],
 })

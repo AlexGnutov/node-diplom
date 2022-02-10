@@ -1,21 +1,19 @@
 import {
+  Inject,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
-import {
-  SupportRequest,
-  SupportRequestDocument,
-} from './schemas/support-request.schema';
-import { Message, MessageDocument } from './schemas/message.schema';
+import { SupportRequest } from './schemas/support-request.interface';
+import { Message } from './schemas/message.interface';
 import { GetChatListParams } from './dto/get-chat-list-params.dto';
 import { ID } from '../common/ID';
 import { SendMessageDto } from './dto/send-message.dto';
-import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { SupportSocketGateway } from './gateway/support-socket.gateway';
 import { Role } from '../roles/role.enum';
 import { UserInterface } from '../common/user-interface';
+import { MessageModelName, SupportRequestModelName } from '../common/constants';
 
 interface ISupportRequestService {
   findSupportRequests(params: GetChatListParams): Promise<SupportRequest[]>;
@@ -27,10 +25,10 @@ interface ISupportRequestService {
 @Injectable()
 export class SupportService implements ISupportRequestService {
   constructor(
-    @InjectModel(SupportRequest.name)
-    private readonly supportRequestModel: Model<SupportRequestDocument>,
-    @InjectModel(Message.name)
-    private readonly messageModel: Model<MessageDocument>,
+    @Inject(MessageModelName)
+    private messageModel: Model<Message>,
+    @Inject(SupportRequestModelName)
+    private supportRequestModel: Model<SupportRequest>,
     private readonly gateway: SupportSocketGateway,
   ) {}
 
@@ -61,6 +59,7 @@ export class SupportService implements ISupportRequestService {
         .exec();
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         'DB error - cant get Request List',
       );
     }
@@ -85,6 +84,7 @@ export class SupportService implements ISupportRequestService {
       return chat.messages;
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         'DB error - cant get chat messages',
       );
     }
@@ -98,6 +98,7 @@ export class SupportService implements ISupportRequestService {
       request = await this.supportRequestModel.findById(data.supportRequest);
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         "DB-error: sendMessage - can't find support request",
       );
     }
@@ -111,6 +112,7 @@ export class SupportService implements ISupportRequestService {
         });
       } catch (e) {
         throw new InternalServerErrorException(
+          e,
           "DB-error: sendMessage - can't create new message",
         );
       }
@@ -118,9 +120,10 @@ export class SupportService implements ISupportRequestService {
     // Push the message into request and save it
     request.messages.push(newMessage);
     try {
-      request.save();
+      await request.save();
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         "DB-error: sendMessage - can't save message",
       );
     }
@@ -129,6 +132,7 @@ export class SupportService implements ISupportRequestService {
       this.subscribe(request, newMessage);
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         "DB-error: sendMessage - can't send WS message",
       );
     }

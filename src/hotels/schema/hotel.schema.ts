@@ -1,21 +1,8 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Schema } from 'mongoose';
 
-export type HotelDocument = Hotel & Document;
-
-@Schema()
-export class Hotel {
-  @Prop({ required: true })
-  title: string;
-
-  @Prop()
-  description: string;
-
-  @Prop({ required: true })
-  createdAt: Date;
-
-  @Prop()
-  updatedAt: Date;
-}
-
-export const HotelSchema = SchemaFactory.createForClass(Hotel);
+export const HotelSchema = new Schema({
+  title: { type: String, required: true },
+  description: { type: String },
+  createdAt: { type: Date, required: true },
+  updatedAt: { type: Date },
+});

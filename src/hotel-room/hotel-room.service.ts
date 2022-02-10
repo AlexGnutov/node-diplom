@@ -1,14 +1,15 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { ID } from '../common/ID';
-import { HotelRoom, HotelRoomDocument } from './schema/hotel-room.schema';
-import { InjectModel } from '@nestjs/mongoose';
+import { HotelRoom } from './schema/hotel-room.interface';
 import { Model } from 'mongoose';
 import { SearchRoomsParams } from '../common/search-rooms-params';
 import { HotelsService } from '../hotels/hotels.service';
+import { HotelRoomModelName } from '../common/constants';
 
 interface IHotelRoomService {
   create(data: Partial<HotelRoom>): Promise<HotelRoom>;
@@ -21,8 +22,8 @@ interface IHotelRoomService {
 export class HotelRoomService implements IHotelRoomService {
   constructor(
     private hotelsService: HotelsService,
-    @InjectModel(HotelRoom.name)
-    private hotelRoomModel: Model<HotelRoomDocument>,
+    @Inject(HotelRoomModelName)
+    private hotelRoomModel: Model<HotelRoom>,
   ) {}
 
   public async create(data: Partial<HotelRoom>): Promise<HotelRoom> {
@@ -31,7 +32,7 @@ export class HotelRoomService implements IHotelRoomService {
     try {
       checkHotel = await this.hotelsService.findById(data.hotelId);
     } catch (e) {
-      throw new InternalServerErrorException('DB-error: HotelRoom Create');
+      throw new InternalServerErrorException(e, 'DB-error: HotelRoom Create');
     }
     // If Hotel doesn't exist - error
     if (!checkHotel) {
@@ -49,7 +50,7 @@ export class HotelRoomService implements IHotelRoomService {
       // Populate hotel data and return result
       await room.populate({ path: 'hotelId' });
     } catch (e) {
-      throw new InternalServerErrorException('DB-error: HotelRoom Create');
+      throw new InternalServerErrorException(e, 'DB-error: HotelRoom Create');
     }
     return room;
   }
@@ -62,7 +63,7 @@ export class HotelRoomService implements IHotelRoomService {
         .populate({ path: 'hotelId' })
         .exec();
     } catch (e) {
-      throw new InternalServerErrorException('DB-error: HotelRoom findById');
+      throw new InternalServerErrorException(e, 'DB-error: HotelRoom findById');
     }
     return room;
   }
@@ -92,7 +93,7 @@ export class HotelRoomService implements IHotelRoomService {
         .populate({ path: 'hotelId' })
         .exec();
     } catch (e) {
-      throw new InternalServerErrorException('DB-error: HotelRoom search');
+      throw new InternalServerErrorException(e, 'DB-error: HotelRoom search');
     }
     return rooms;
   }
@@ -111,7 +112,7 @@ export class HotelRoomService implements IHotelRoomService {
         .populate({ path: 'hotelId' })
         .exec();
     } catch (e) {
-      throw new InternalServerErrorException('DB-error: HotelRoom update');
+      throw new InternalServerErrorException(e, 'DB-error: HotelRoom update');
     }
     return updated;
   }

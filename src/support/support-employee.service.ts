@@ -1,13 +1,14 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
 import {
-  SupportRequest,
-  SupportRequestDocument,
-} from './schemas/support-request.schema';
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { SupportRequest } from './schemas/support-request.interface';
 import { Model } from 'mongoose';
-import { Message, MessageDocument } from './schemas/message.schema';
+import { Message } from './schemas/message.interface';
 import { ID } from '../common/ID';
 import { MarkMessagesAsReadDto } from './dto/mark-message-as-read.dto';
+import { MessageModelName, SupportRequestModelName } from '../common/constants';
 
 interface ISupportRequestEmployeeService {
   markMessagesAsRead(params: MarkMessagesAsReadDto);
@@ -18,10 +19,10 @@ interface ISupportRequestEmployeeService {
 @Injectable()
 export class SupportEmployeeService implements ISupportRequestEmployeeService {
   constructor(
-    @InjectModel(SupportRequest.name)
-    private supportRequestModel: Model<SupportRequestDocument>,
-    @InjectModel(Message.name)
-    private messageModel: Model<MessageDocument>,
+    @Inject(MessageModelName)
+    private messageModel: Model<Message>,
+    @Inject(SupportRequestModelName)
+    private supportRequestModel: Model<SupportRequest>,
   ) {}
 
   async closeRequest(supportRequest: ID): Promise<void> {
@@ -31,6 +32,7 @@ export class SupportEmployeeService implements ISupportRequestEmployeeService {
       });
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         "DB-error: closeRequest - can't find request:",
       );
     }
@@ -46,6 +48,7 @@ export class SupportEmployeeService implements ISupportRequestEmployeeService {
         .exec();
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         "DB-error: getUnreadCount - can't find request:",
       );
     }
@@ -73,6 +76,7 @@ export class SupportEmployeeService implements ISupportRequestEmployeeService {
         .exec();
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         "DB-error: markMessageAsRead: can't find request:",
       );
     }
@@ -82,9 +86,16 @@ export class SupportEmployeeService implements ISupportRequestEmployeeService {
         !message.readAt &&
         message.author.toString() === request.user.toString()
       ) {
-        await this.messageModel.findByIdAndUpdate(message['_id'], {
-          readAt: new Date(),
-        });
+        try {
+          await this.messageModel.findByIdAndUpdate(message['_id'], {
+            readAt: new Date(),
+          });
+        } catch (e) {
+          throw new InternalServerErrorException(
+            e,
+            "DB-error: markMessageAsRead: can't update message",
+          );
+        }
       }
     }
     return { success: true };

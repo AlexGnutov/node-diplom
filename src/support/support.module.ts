@@ -5,30 +5,20 @@ import { SupportSocketGateway } from './gateway/support-socket.gateway';
 import { AuthModule } from '../auth/auth.module';
 import { AuthService } from '../auth/auth.service';
 import { UsersModule } from '../users/users.module';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Message, MessageSchema } from './schemas/message.schema';
-import {
-  SupportRequest,
-  SupportRequestSchema,
-} from './schemas/support-request.schema';
 import { SupportClientService } from './support-client.service';
 import { SupportEmployeeService } from './support-employee.service';
+import { SupportProviders } from './support.providers';
+import { DatabaseModule } from '../database/database.module';
 
 @Module({
-  imports: [
-    AuthModule,
-    UsersModule,
-    MongooseModule.forFeature([
-      { name: Message.name, schema: MessageSchema },
-      { name: SupportRequest.name, schema: SupportRequestSchema },
-    ]),
-  ],
+  imports: [AuthModule, UsersModule, DatabaseModule],
   providers: [
     SupportService,
     SupportSocketGateway,
     AuthService,
     SupportClientService,
     SupportEmployeeService,
+    ...SupportProviders,
   ],
   controllers: [SupportController],
 })

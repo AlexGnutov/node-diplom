@@ -7,10 +7,10 @@ import {
   WsException,
 } from '@nestjs/websockets';
 import { AuthService } from '../../auth/auth.service';
-import { InternalServerErrorException, UseGuards } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
 import { WsAuthenticatedGuard } from './guards/ws.authentificated.guard';
-import { SupportRequest } from '../schemas/support-request.schema';
-import { Message } from '../schemas/message.schema';
+import { SupportRequest } from '../schemas/support-request.interface';
+import { Message } from '../schemas/message.interface';
 
 @WebSocketGateway()
 export class SupportSocketGateway {

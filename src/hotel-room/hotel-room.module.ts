@@ -1,18 +1,13 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { HotelRoom, HotelRoomSchema } from './schema/hotel-room.schema';
 import { HotelRoomService } from './hotel-room.service';
 import { HotelRoomController } from './hotel-room.controller';
 import { HotelsModule } from '../hotels/hotels.module';
+import { DatabaseModule } from '../database/database.module';
+import { HotelRoomProviders } from './hotel-room.providers';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: HotelRoom.name, schema: HotelRoomSchema },
-    ]),
-    HotelsModule,
-  ],
-  providers: [HotelRoomService],
+  imports: [DatabaseModule, HotelsModule],
+  providers: [HotelRoomService, ...HotelRoomProviders],
   exports: [HotelRoomService],
   controllers: [HotelRoomController],
 })

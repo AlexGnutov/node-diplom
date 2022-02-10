@@ -100,7 +100,7 @@ export class HotelRoomController {
         const oldImages: string[] = JSON.parse(dataFields.images);
         dataFields.images = oldImages.concat(newImages);
       } catch (e) {
-        throw new BadRequestException(e.message);
+        throw new BadRequestException(e, e.message);
       }
     } else {
       // If no old images data was sent - just take file names

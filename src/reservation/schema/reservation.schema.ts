@@ -1,35 +1,18 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-import * as mongoose from 'mongoose';
-import { ID } from '../../common/ID';
+import { Schema } from 'mongoose';
 
-export type ReservationDocument = Reservation & Document;
-
-@Schema()
-export class Reservation {
-  @Prop({
+export const ReservationSchema = new Schema({
+  userId: {
     required: true,
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  })
-  userId: ID;
-
-  @Prop({
+    type: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  },
+  hotelId: {
     required: true,
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Hotel' }],
-  })
-  hotelId: ID;
-
-  @Prop({
+    type: [{ type: Schema.Types.ObjectId, ref: 'Hotel' }],
+  },
+  roomId: {
     required: true,
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'HotelRoom' }],
-  })
-  roomId: ID;
-
-  @Prop({ required: true })
-  dateStart: Date;
-
-  @Prop({ required: true })
-  dateEnd: Date;
-}
-
-export const ReservationSchema = SchemaFactory.createForClass(Reservation);
+    type: [{ type: Schema.Types.ObjectId, ref: 'HotelRoom' }],
+  },
+  dateStart: { type: Date, required: true },
+  dateEnd: { type: Date, required: true },
+});

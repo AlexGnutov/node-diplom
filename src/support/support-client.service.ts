@@ -1,18 +1,16 @@
 import {
+  Inject,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
-import {
-  SupportRequest,
-  SupportRequestDocument,
-} from './schemas/support-request.schema';
-import { Message, MessageDocument } from './schemas/message.schema';
+import { SupportRequest } from './schemas/support-request.interface';
+import { Message } from './schemas/message.interface';
 import { ID } from '../common/ID';
 import { CreateSupportRequestDto } from './dto/create-support-request.dto';
 import { MarkMessagesAsReadDto } from './dto/mark-message-as-read.dto';
-import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { MessageModelName, SupportRequestModelName } from '../common/constants';
 
 interface ISupportRequestClientService {
   createSupportRequest(data: CreateSupportRequestDto): Promise<SupportRequest>;
@@ -24,10 +22,10 @@ interface ISupportRequestClientService {
 export class SupportClientService implements ISupportRequestClientService {
   constructor(
     // Importing both models - for requests and for messages
-    @InjectModel(SupportRequest.name)
-    private readonly supportRequestModel: Model<SupportRequestDocument>,
-    @InjectModel(Message.name)
-    private readonly messageModel: Model<MessageDocument>,
+    @Inject(MessageModelName)
+    private messageModel: Model<Message>,
+    @Inject(SupportRequestModelName)
+    private supportRequestModel: Model<SupportRequest>,
   ) {}
 
   // Creates request and puts initial message into it
@@ -47,6 +45,7 @@ export class SupportClientService implements ISupportRequestClientService {
       });
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         "DB error - can't create new message",
       );
     }
@@ -60,6 +59,7 @@ export class SupportClientService implements ISupportRequestClientService {
       });
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         "DB error - can't create new request",
       );
     }
@@ -79,6 +79,7 @@ export class SupportClientService implements ISupportRequestClientService {
         .exec();
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         'DB error: cant find support request',
       );
     }
@@ -91,9 +92,16 @@ export class SupportClientService implements ISupportRequestClientService {
     // Select messages from support with "readAt = null"
     for (const message of request.messages) {
       if (!message.readAt && message.author.toString() !== currentUser) {
-        await this.messageModel.findByIdAndUpdate(message['_id'], {
-          readAt: new Date(),
-        });
+        try {
+          await this.messageModel.findByIdAndUpdate(message['_id'], {
+            readAt: new Date(),
+          });
+        } catch (e) {
+          throw new InternalServerErrorException(
+            e,
+            'DB error: cant update message',
+          );
+        }
       }
     }
     return { success: true };
@@ -110,6 +118,7 @@ export class SupportClientService implements ISupportRequestClientService {
         .exec();
     } catch (e) {
       throw new InternalServerErrorException(
+        e,
         "DB-error: getUnreadCount - can't load request",
       );
     }

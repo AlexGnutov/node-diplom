@@ -15,7 +15,6 @@ export class ExactHotelRoomInterceptor implements NestInterceptor {
     // Formats Hotel Room Data created by HotelRoomService
     return next.handle().pipe(
       map((value) => {
-        console.log(value);
         return {
           id: value._id,
           title: value.title,
