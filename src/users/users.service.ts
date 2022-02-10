@@ -8,20 +8,13 @@ import { Model } from 'mongoose';
 import { ID } from '../common/ID';
 import { User } from './schema/user.interface';
 import { UserModelName } from '../common/constants';
-
-export interface SearchUserParams {
-  limit: number;
-  offset: number;
-  email: string;
-  name: string;
-  contactPhone: string;
-}
+import { SearchUserParamsDto } from './dto/search.user.params.dto';
 
 interface IUserService {
   create(data: Partial<User>): Promise<User>;
   findById(id: ID): Promise<User>;
   findByEmail(email: string): Promise<User>;
-  findAll(params: SearchUserParams): Promise<User[]>;
+  findAll(params: SearchUserParamsDto): Promise<User[]>;
 }
 
 @Injectable()
@@ -51,7 +44,7 @@ export class UsersService implements IUserService {
   }
 
   public async findById(id: ID): Promise<User> {
-    let user;
+    let user: User;
     try {
       user = await this.userModel.findOne({ _id: id }).exec();
     } catch (e) {
@@ -64,7 +57,7 @@ export class UsersService implements IUserService {
   }
 
   public async findByEmail(email: string): Promise<any> {
-    let user;
+    let user: User;
     try {
       user = await this.userModel.findOne({ email: email }).exec();
     } catch (e) {
@@ -76,7 +69,7 @@ export class UsersService implements IUserService {
     return user;
   }
 
-  public async findAll(params: SearchUserParams): Promise<User[]> {
+  public async findAll(params: SearchUserParamsDto): Promise<User[]> {
     // Set options (have to change offset to skip!)
     const { limit, offset } = params;
     const options = {

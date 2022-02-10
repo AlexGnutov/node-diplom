@@ -18,8 +18,7 @@ import { imageFileFilter } from '../common/utils/image-file-filter.util';
 import { editFileName } from '../common/utils/edit-file-name.util';
 import { HotelRoomService } from './hotel-room.service';
 import { AdminHotelRoomInteceptor } from './interceptors/admin-hotel-room.inteceptor';
-import { ID } from '../common/ID';
-import { SearchRoomsParams } from '../common/search-rooms-params';
+import { SearchRoomsParams } from './dto/search-rooms-params';
 import { SearchHotelRoomInterceptor } from './interceptors/search-hotel-room.interceptor';
 import { ExactHotelRoomInterceptor } from './interceptors/exact-hotel-room.interceptor';
 import { Role } from '../roles/role.enum';
@@ -27,6 +26,8 @@ import { Roles } from '../roles/roles.decorator';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 import { RolesGuard } from '../roles/roles.guard';
 import { RequestUserInterface } from '../common/request-user-interface';
+import { ValidationPipe } from '../common/pipes/validation.pipe';
+import { ParamDto } from '../common/pipes/param.dto';
 
 @Controller()
 export class HotelRoomController {
@@ -35,7 +36,7 @@ export class HotelRoomController {
   @Get('api/common/hotel-rooms')
   @UseInterceptors(SearchHotelRoomInterceptor)
   hotelRoomsSearch(
-    @Query() queryParams: SearchRoomsParams,
+    @Query(new ValidationPipe()) queryParams: SearchRoomsParams,
     @Request() req: RequestUserInterface,
   ) {
     if (!req.user || req.user['role'] === Role.User) {
@@ -46,8 +47,8 @@ export class HotelRoomController {
 
   @Get('api/common/hotel-rooms/:id')
   @UseInterceptors(ExactHotelRoomInterceptor)
-  hotelRoomInformation(@Param('id') id: ID) {
-    return this.hotelRoomService.findById(id);
+  hotelRoomInformation(@Param(new ValidationPipe()) param: ParamDto) {
+    return this.hotelRoomService.findById(param.id);
   }
 
   @UseGuards(AuthenticatedGuard, RolesGuard)
@@ -89,7 +90,7 @@ export class HotelRoomController {
   updateHotelRoom(
     @UploadedFiles() files,
     @Body() dataFields,
-    @Param('id') id: ID,
+    @Param(new ValidationPipe()) param: ParamDto,
   ) {
     // Put file names into array
     const newImages: string[] = [];
@@ -107,6 +108,6 @@ export class HotelRoomController {
       dataFields.images = newImages;
     }
     const roomData = { ...dataFields };
-    return this.hotelRoomService.update(id, roomData);
+    return this.hotelRoomService.update(param.id, roomData);
   }
 }

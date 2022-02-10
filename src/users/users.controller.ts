@@ -9,20 +9,15 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { Roles } from '../roles/roles.decorator';
-import { SearchUserParams, UsersService } from './users.service';
+import { UsersService } from './users.service';
 import { PasswordHashPipe } from './pipes/password-hash.pipe';
 import { CreateUserInterceptor } from './interceptors/create-user.interceptor';
 import { Role } from 'src/roles/role.enum';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 import { RolesGuard } from '../roles/roles.guard';
-
-interface UserCreateDto {
-  email: string;
-  password: string;
-  name: string;
-  contactPhone: string;
-  role: Role;
-}
+import { ValidationPipe } from '../common/pipes/validation.pipe';
+import { SearchUserParamsDto } from './dto/search.user.params.dto';
+import {UserCreateDto} from "./dto/user.create.dto";
 
 @Controller('')
 export class UsersController {
@@ -43,8 +38,8 @@ export class UsersController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Get('api/admin/users')
   @Roles(Role.Admin) // add roles restriction
-  getUsersList(@Query() queryData: SearchUserParams) {
-    queryData['role'] = undefined;
+  getUsersList(@Query(new ValidationPipe()) queryData: SearchUserParamsDto) {
+    queryData.role = undefined;
     return this.usersService.findAll(queryData);
   }
 
@@ -53,8 +48,8 @@ export class UsersController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Get('api/manager/users')
   @Roles(Role.Manager) // add roles restriction
-  getClientsList(@Query() queryData: SearchUserParams) {
-    queryData['role'] = 'client';
+  getClientsList(@Query(new ValidationPipe()) queryData: SearchUserParamsDto) {
+    queryData.role = Role.User;
     return this.usersService.findAll(queryData);
   }
 }

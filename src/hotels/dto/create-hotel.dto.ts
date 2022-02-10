@@ -1,4 +1,10 @@
-export interface CreateHotelDto {
+import { IsDefined, IsString } from 'class-validator';
+
+export class CreateHotelDto {
+  @IsDefined()
+  @IsString()
   title: string;
-  description: string;
+
+  @IsString()
+  description?: string;
 }

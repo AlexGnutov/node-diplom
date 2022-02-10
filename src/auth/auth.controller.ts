@@ -15,6 +15,7 @@ import { UserRegisterPipe } from './pipes/user-register.pipe';
 import { UserRegisterInterceptor } from './interceptors/user-register.interceptor';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { RequestUserInterface } from '../common/request-user-interface';
+import { ValidationPipe } from '../common/pipes/validation.pipe';
 
 @Controller()
 export class AuthController {
@@ -47,7 +48,7 @@ export class AuthController {
   @Post('api/client/register')
   @UseInterceptors(UserRegisterInterceptor)
   @UsePipes(new UserRegisterPipe())
-  register(@Body() userData: UserRegisterDto) {
+  register(@Body(new ValidationPipe()) userData: UserRegisterDto) {
     return this.userService.create(userData);
   }
 }

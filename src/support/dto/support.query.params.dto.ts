@@ -1,9 +1,8 @@
 import { IsNumber, IsOptional } from 'class-validator';
 
-export class HotelsQueryParamsDto {
+export class SupportQueryParamsDto {
   @IsOptional()
-  @IsNumber()
-  limit?: number;
+  isActive?: boolean;
 
   @IsOptional()
   @IsNumber()
@@ -11,5 +10,5 @@ export class HotelsQueryParamsDto {
 
   @IsOptional()
   @IsNumber()
-  title?: string;
+  limit?: number;
 }

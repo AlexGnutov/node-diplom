@@ -1,3 +1,4 @@
+import { Role } from '../../roles/role.enum';
 import {
   IsDefined,
   IsEmail,
@@ -5,26 +6,25 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { Role } from '../../roles/role.enum';
 
-export class UserRegisterDto {
+export class UserCreateDto {
   @IsDefined()
   @IsEmail()
   email: string;
 
   @IsDefined()
-  @IsString()
   passwordHash: string;
 
   @IsOptional()
-  name: string;
+  @IsString()
+  name?: string;
 
   @IsOptional()
-  contactPhone?: string;
-
-  @IsEmpty()
-  password?: string;
+  contactPhone: string;
 
   @IsDefined()
   role: Role;
+
+  @IsEmpty()
+  password?: string;
 }

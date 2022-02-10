@@ -67,7 +67,7 @@ export class SupportService implements ISupportRequestService {
 
   async getMessages(supportRequest: ID, user: User): Promise<Message[]> {
     try {
-      const chat = await this.supportRequestModel
+      const chat: SupportRequest = await this.supportRequestModel
         .findById(supportRequest)
         .populate({
           path: 'messages',
@@ -88,8 +88,8 @@ export class SupportService implements ISupportRequestService {
   }
 
   async sendMessage(data: SendMessageDto): Promise<Message> {
-    let request;
-    let newMessage;
+    let request: SupportRequest;
+    let newMessage: Message;
     // Find the support request
     try {
       request = await this.supportRequestModel.findById(data.supportRequest);

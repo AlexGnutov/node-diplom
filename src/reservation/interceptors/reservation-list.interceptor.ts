@@ -18,13 +18,12 @@ export class ReservationListInterceptor implements NestInterceptor {
       map((reservations) =>
         reservations.map((reservation) => {
           return {
-            id: reservation._id,
             startDate: reservation.dateStart.toISOString(),
             endDate: reservation.dateEnd.toISOString(),
             hotelRoom: {
               title: reservation.roomId[0].title,
               description: reservation.roomId[0].description,
-              images: reservation.roomId[0].title,
+              images: reservation.roomId[0].images,
             },
             hotel: {
               title: reservation.hotelId[0].title,

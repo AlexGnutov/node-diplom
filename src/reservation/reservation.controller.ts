@@ -14,16 +14,19 @@ import {
 } from '@nestjs/common';
 import { HotelRoomService } from '../hotel-room/hotel-room.service';
 import { ReservationDto } from './dto/reservation.dto';
-import { ReservationValidationPipe } from './pipes/reservation-validation.pipe';
 import { ReservationService } from './reservation.service';
 import { CreateReservationInterceptor } from './interceptors/create-reservation.interceptor';
-import { ID } from '../common/ID';
 import { ReservationListInterceptor } from './interceptors/reservation-list.interceptor';
 import { Role } from '../roles/role.enum';
 import { Roles } from '../roles/roles.decorator';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 import { RolesGuard } from '../roles/roles.guard';
 import { RequestUserInterface } from '../common/request-user-interface';
+import { ReservationSearchOptionsDto } from './dto/reservation-search-options.dto';
+import { Reservation } from './schema/reservation.interface';
+import { ParamDto } from '../common/pipes/param.dto';
+import { ValidationPipe } from '../common/pipes/validation.pipe';
+import { DatesValidationPipe } from '../common/pipes/dates.validation.pipe';
 
 @Controller()
 export class ReservationController {
@@ -35,19 +38,21 @@ export class ReservationController {
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Post('api/client/reservations')
   @Roles(Role.User) // add roles restriction
+  @UsePipes(new DatesValidationPipe())
   @UseInterceptors(CreateReservationInterceptor) // format output data
-  @UsePipes(new ReservationValidationPipe()) // validate input data
   async createMyReservation(
-    @Body() data: ReservationDto,
+    @Body(new ValidationPipe())
+    data: ReservationDto,
     @Request() req: RequestUserInterface,
   ) {
     // Add user id from req(session)
-    data.user = req.user.id;
+    data.userId = req.user.id;
     // Check if room and hotel exist together
-    const roomExist = await this.hotelRoomService.findById(data.room);
-    if (!roomExist || roomExist.hotelId[0]['_id'].toString() !== data.hotel) {
-      throw new BadRequestException("Room or hotel doesn't exist");
+    const roomExist = await this.hotelRoomService.findById(data.roomId);
+    if (!roomExist) {
+      throw new BadRequestException("Room doesn't exist");
     }
+    data.hotelId = roomExist.hotelId;
     // Try to add reservation:
     return await this.reservationService.addReservation(data);
   }
@@ -57,54 +62,53 @@ export class ReservationController {
   @Roles(Role.User) // add roles restriction
   @UseInterceptors(ReservationListInterceptor) // format output data
   myReservationsList(@Request() req: RequestUserInterface) {
-    const user = req.user.id;
-    const searchParams = { user };
-    return this.reservationService.getReservations(searchParams);
+    const data: ReservationSearchOptionsDto = {
+      userId: req.user.id,
+    };
+    return this.reservationService.getReservations(data);
   }
 
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Delete('api/client/reservations/:id')
   @Roles(Role.User) // add roles restriction
   async deleteMyReservation(
-    @Param('id') reservationId: ID,
+    @Param(new ValidationPipe()) param: ParamDto,
     @Request() req: RequestUserInterface,
   ) {
-    const reservation = await this.reservationService.findById(reservationId);
+    const reservation = await this.reservationService.findById(
+      param.reservationId,
+    );
     if (!reservation) {
       throw new BadRequestException("Reservation doesn't exist");
     }
     // Compare user and reservation user
-    const userId = req.user.id;
-    if (reservation.userId.toString() !== userId) {
+    if (reservation.userId.toString() !== req.user.id) {
       throw new ForbiddenException();
     }
-    return this.reservationService.removeReservation(reservationId);
+    return this.reservationService.removeReservation(param.reservationId);
   }
 
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Get('api/manager/reservations/:userId')
   @Roles(Role.Manager) // add roles restriction
   @UseInterceptors(ReservationListInterceptor)
-  clientReservationsList(@Param('userId') user: ID) {
-    const searchParams = { user };
-    return this.reservationService.getReservations(searchParams);
+  clientReservationsList(@Param('userId') data: ReservationSearchOptionsDto) {
+    return this.reservationService.getReservations(data);
   }
 
   @UseGuards(AuthenticatedGuard, RolesGuard)
   @Delete('api/manager/reservations/:userId/:reservationId')
   @Roles(Role.Manager) // add roles restriction
-  async deleteClientReservation(
-    @Param('userId') userId: ID,
-    @Param('reservationId') reservationId: ID,
-  ) {
-    const reservation = await this.reservationService.findById(reservationId);
+  async deleteClientReservation(@Param(new ValidationPipe()) param: ParamDto) {
+    const reservation: Reservation | null =
+      await this.reservationService.findById(param.reservationId);
     if (!reservation) {
-      throw new BadRequestException();
+      throw new BadRequestException("Reservation doesn't exist");
     }
     // Compare user and reservation user
-    if (reservation.userId.toString() !== userId) {
-      throw new BadRequestException();
+    if (reservation.userId.toString() !== param.userId) {
+      throw new ForbiddenException();
     }
-    return this.reservationService.removeReservation(reservationId);
+    return this.reservationService.removeReservation(param.reservationId);
   }
 }

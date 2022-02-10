@@ -7,7 +7,7 @@ import {
 import { Model } from 'mongoose';
 import { Reservation } from './schema/reservation.interface';
 import { ID } from '../common/ID';
-import { ReservationSearchOptions } from './dto/reservation-search-options';
+import { ReservationSearchOptionsDto } from './dto/reservation-search-options.dto';
 import { ReservationDto } from './dto/reservation.dto';
 import { DateToComStrUtil } from '../common/utils/date-to-compare-string.util';
 import { ReservationModelName } from '../common/constants';
@@ -16,7 +16,7 @@ interface IReservation {
   addReservation(data: ReservationDto): Promise<Reservation>;
   removeReservation(id: ID): Promise<void>;
   getReservations(
-    searchParams: Partial<ReservationSearchOptions>,
+    searchParams: ReservationSearchOptionsDto,
   ): Promise<Array<Reservation>>;
   findById(id: ID): Promise<Reservation>;
 }
@@ -30,8 +30,8 @@ export class ReservationService implements IReservation {
 
   public async addReservation(data: ReservationDto): Promise<Reservation> {
     // Check if the room is not reserved for the dates
-    const existReservations = await this.getReservations({
-      user: data.user,
+    const existReservations: Array<Reservation> = await this.getReservations({
+      roomId: data.roomId,
     });
     // Take dates of existing reservations
     const reservedDates = [];
@@ -52,15 +52,8 @@ export class ReservationService implements IReservation {
       }
     });
     // Create reservation after dates check
-    const reservationData = {
-      userId: data.user,
-      hotelId: data.hotel,
-      roomId: data.room,
-      dateStart: data.dateStart,
-      dateEnd: data.dateEnd,
-    };
     try {
-      const reservation = await this.reservationModel.create(reservationData);
+      const reservation: Reservation = await this.reservationModel.create(data);
       return await reservation.populate([
         { path: 'hotelId' },
         { path: 'roomId' },
@@ -80,17 +73,13 @@ export class ReservationService implements IReservation {
   }
 
   public async getReservations(
-    searchParams: Partial<ReservationSearchOptions>,
+    searchParams: ReservationSearchOptionsDto,
   ): Promise<Array<Reservation>> {
     // Finding by ID in separate function - see below
-    let filter = {};
-    if (searchParams.user) {
-      filter['user'] = searchParams.user;
-    }
-    if (Object.keys(filter).length === 0) {
-      filter = null;
-    }
-    let reservations;
+    const filter = {
+      ...searchParams,
+    };
+    let reservations: Reservation[];
     try {
       reservations = await this.reservationModel
         .find(filter)

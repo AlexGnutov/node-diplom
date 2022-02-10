@@ -7,9 +7,10 @@ import {
 import { ID } from '../common/ID';
 import { HotelRoom } from './schema/hotel-room.interface';
 import { Model } from 'mongoose';
-import { SearchRoomsParams } from '../common/search-rooms-params';
+import { SearchRoomsParams } from './dto/search-rooms-params';
 import { HotelsService } from '../hotels/hotels.service';
 import { HotelRoomModelName } from '../common/constants';
+import { Hotel } from '../hotels/schema/hotel.interface';
 
 interface IHotelRoomService {
   create(data: Partial<HotelRoom>): Promise<HotelRoom>;
@@ -28,7 +29,7 @@ export class HotelRoomService implements IHotelRoomService {
 
   public async create(data: Partial<HotelRoom>): Promise<HotelRoom> {
     // Check, if hotel exist
-    let checkHotel;
+    let checkHotel: Hotel;
     try {
       checkHotel = await this.hotelsService.findById(data.hotelId);
     } catch (e) {
@@ -44,7 +45,7 @@ export class HotelRoomService implements IHotelRoomService {
       createdAt: new Date(),
     };
     // Create Document
-    let room;
+    let room: HotelRoom;
     try {
       room = await this.hotelRoomModel.create(roomData);
       // Populate hotel data and return result
@@ -56,7 +57,7 @@ export class HotelRoomService implements IHotelRoomService {
   }
 
   public async findById(id: ID): Promise<HotelRoom> {
-    let room;
+    let room: HotelRoom;
     try {
       room = await this.hotelRoomModel
         .findById(id)
@@ -79,8 +80,8 @@ export class HotelRoomService implements IHotelRoomService {
     if (params.isEnabled) {
       filter['isEnabled'] = true;
     }
-    if (params.hotel) {
-      filter['hotelId'] = params.hotel;
+    if (params.hotelId) {
+      filter['hotelId'] = params.hotelId;
     }
     if (Object.keys(filter).length === 0) {
       filter = null;

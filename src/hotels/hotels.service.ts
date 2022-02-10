@@ -8,13 +8,14 @@ import { Hotel } from './schema/hotel.interface';
 import { ID } from '../common/ID';
 import { CreateHotelDto } from './dto/create-hotel.dto';
 import { HotelsQueryParamsDto } from './dto/hotels-query-params.dto';
-import { HotelModelName, UserModelName } from '../common/constants';
+import { HotelModelName } from '../common/constants';
+import { UpdateHotelDto } from './dto/update-hotel.dto';
 
 interface IHotelService {
   create(data: CreateHotelDto): Promise<Hotel>;
   findById(id: ID): Promise<Hotel>;
   search(params: Pick<Hotel, 'title'>): Promise<Hotel[]>;
-  update(id: ID, data: CreateHotelDto): Promise<Hotel>;
+  update(id: ID, data: UpdateHotelDto): Promise<Hotel>;
 }
 
 @Injectable()
@@ -25,7 +26,7 @@ export class HotelsService implements IHotelService {
   ) {}
 
   public async create(data: CreateHotelDto): Promise<Hotel> {
-    let hotel;
+    let hotel: Hotel;
     try {
       hotel = await this.hotelModel.create({
         title: data.title,
@@ -42,9 +43,9 @@ export class HotelsService implements IHotelService {
   }
 
   public async findById(id: ID): Promise<Hotel> {
-    let hotel;
+    let hotel: Hotel;
     try {
-      hotel = this.hotelModel.findById(id).exec();
+      hotel = await this.hotelModel.findById(id).exec();
     } catch (e) {
       throw new InternalServerErrorException(
         e,
@@ -66,9 +67,9 @@ export class HotelsService implements IHotelService {
       : null;
     const projection = 'id title description';
     // Find hotels
-    let hotels;
+    let hotels: Hotel[];
     try {
-      hotels = this.hotelModel.find(filter, projection, options).exec();
+      hotels = await this.hotelModel.find(filter, projection, options).exec();
     } catch (e) {
       throw new InternalServerErrorException(
         e,
@@ -78,9 +79,9 @@ export class HotelsService implements IHotelService {
     return hotels;
   }
 
-  public async update(id: ID, data: CreateHotelDto): Promise<Hotel> {
+  public async update(id: ID, data: UpdateHotelDto): Promise<Hotel> {
     // Fix date of update
-    data['updatedAt'] = new Date();
+    data.updatedAt = new Date();
     let updated;
     try {
       updated = await this.hotelModel

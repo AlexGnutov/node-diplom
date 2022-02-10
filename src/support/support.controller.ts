@@ -18,7 +18,6 @@ import { SupportEmployeeService } from './support-employee.service';
 import { GetChatListParams } from './dto/get-chat-list-params.dto';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 import { RolesGuard } from '../roles/roles.guard';
-import { ID } from '../common/ID';
 import { MarkMessagesAsReadDto } from './dto/mark-message-as-read.dto';
 import { CreateSupportRequestInterceptor } from './interceptors/create-support-request.interceptor';
 import { SupportReqListClientInterceptor } from './interceptors/support-req-list-client.interceptor';
@@ -27,6 +26,9 @@ import { GetMessagesInterceptor } from './interceptors/get-messages.interceptor'
 import { SendMessageInterceptor } from './interceptors/send-message.interceptor';
 import { SendMessageDto } from './dto/send-message.dto';
 import { RequestUserInterface } from '../common/request-user-interface';
+import { ValidationPipe } from '../common/pipes/validation.pipe';
+import { SupportQueryParamsDto } from './dto/support.query.params.dto';
+import { ParamDto } from '../common/pipes/param.dto';
 
 @Controller()
 export class SupportController {
@@ -42,9 +44,10 @@ export class SupportController {
   @Post('api/client/support-requests')
   @Roles(Role.User)
   createSupportRequest(
-    @Body() body: CreateSupportRequestDto,
+    @Body(new ValidationPipe()) body: CreateSupportRequestDto,
     @Request() req: RequestUserInterface,
   ) {
+    // Take user attached to req:
     const data: CreateSupportRequestDto = {
       user: req.user.id,
       text: body.text,
@@ -58,14 +61,12 @@ export class SupportController {
   @Get('api/client/support-requests')
   @Roles(Role.User)
   getMySupportRequestsList(
-    @Query() queryParams,
+    @Query(new ValidationPipe()) queryParams: SupportQueryParamsDto,
     @Request() req: RequestUserInterface,
   ) {
     const data: GetChatListParams = {
+      ...queryParams,
       user: req.user.id,
-      isActive: queryParams.isActive,
-      offset: queryParams.offset,
-      limit: queryParams.limit,
     };
     return this.supportService.findSupportRequests(data);
   }
@@ -75,12 +76,12 @@ export class SupportController {
   @UseInterceptors(SupportReqListManagerInterceptor)
   @Get('api/manager/support-requests')
   @Roles(Role.Manager)
-  async getClientsReqList(@Query() queryParams: any) {
+  async getClientsReqList(
+    @Query(new ValidationPipe()) queryParams: SupportQueryParamsDto,
+  ) {
     const data: GetChatListParams = {
       user: null,
-      isActive: queryParams.isActive,
-      offset: queryParams.offset,
-      limit: queryParams.limit,
+      ...queryParams,
     };
     return await this.supportService.findSupportRequests(data);
   }
@@ -91,10 +92,10 @@ export class SupportController {
   @Get('api/common/support-requests/:id/messages')
   @Roles(Role.Manager, Role.User)
   getChatMessages(
-    @Param('id') id: string,
+    @Param(new ValidationPipe()) param: ParamDto,
     @Request() req: RequestUserInterface,
   ) {
-    return this.supportService.getMessages(id, req.user);
+    return this.supportService.getMessages(param.id, req.user);
   }
 
   // 2.5.5 - Send message to a chat (Request) (G-I-R)
@@ -103,13 +104,13 @@ export class SupportController {
   @Post('api/common/support-requests/:id/messages')
   @Roles(Role.Manager, Role.User)
   sendChatMessage(
-    @Param('id') id: string,
+    @Param(new ValidationPipe()) param: ParamDto,
     @Request() req: RequestUserInterface,
     @Body() body: SendMessageDto,
   ) {
-    const data = {
+    const data: SendMessageDto = {
       author: req.user.id,
-      supportRequest: id,
+      supportRequest: param.id,
       text: body.text,
     };
     return this.supportService.sendMessage(data);
@@ -122,11 +123,11 @@ export class SupportController {
   markChatMessagesAsRead(
     @Body() body: MarkMessagesAsReadDto,
     @Request() req: RequestUserInterface,
-    @Param('id') supportReqId: ID,
+    @Param(new ValidationPipe()) param: ParamDto,
   ) {
     const data: MarkMessagesAsReadDto = {
       user: req.user.id,
-      supportRequest: supportReqId,
+      supportRequest: param.supportRequestId,
       createdBefore: body.createdBefore,
     };
     // choose service acc. role
