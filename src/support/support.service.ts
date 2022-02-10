@@ -12,13 +12,13 @@ import { SendMessageDto } from './dto/send-message.dto';
 import { Model } from 'mongoose';
 import { SupportSocketGateway } from './gateway/support-socket.gateway';
 import { Role } from '../roles/role.enum';
-import { UserInterface } from '../common/user-interface';
 import { MessageModelName, SupportRequestModelName } from '../common/constants';
+import { User } from '../users/schema/user.interface';
 
 interface ISupportRequestService {
   findSupportRequests(params: GetChatListParams): Promise<SupportRequest[]>;
   sendMessage(data: SendMessageDto): Promise<Message>;
-  getMessages(supportRequest: ID, user: UserInterface): Promise<Message[]>;
+  getMessages(supportRequest: ID, user: User): Promise<Message[]>;
   subscribe(supportRequest: SupportRequest, message: Message): void;
 }
 
@@ -65,10 +65,7 @@ export class SupportService implements ISupportRequestService {
     }
   }
 
-  async getMessages(
-    supportRequest: ID,
-    user: UserInterface,
-  ): Promise<Message[]> {
+  async getMessages(supportRequest: ID, user: User): Promise<Message[]> {
     try {
       const chat = await this.supportRequestModel
         .findById(supportRequest)

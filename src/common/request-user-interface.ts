@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { UserInterface } from './user-interface';
+import { User } from '../users/schema/user.interface';
 export interface RequestUserInterface extends Request {
-  user: UserInterface;
+  user: User;
 }
