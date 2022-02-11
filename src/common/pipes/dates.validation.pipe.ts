@@ -9,8 +9,8 @@ import {
 export class DatesValidationPipe implements PipeTransform {
   async transform(data: any, metadata: ArgumentMetadata) {
     // Check if data strings are valid
-    const dateStart = new Date(data.startDate);
-    const dateEnd = new Date(data.endDate);
+    const dateStart = new Date(data.dateStart);
+    const dateEnd = new Date(data.dateEnd);
     if (
       dateStart.toString() === 'Invalid Date' ||
       dateEnd.toString() === 'Invalid Date'
@@ -18,6 +18,7 @@ export class DatesValidationPipe implements PipeTransform {
       throw new BadRequestException("Incorrect dates values - can't parse");
     }
     return {
+      ...data,
       dateStart,
       dateEnd,
     };
