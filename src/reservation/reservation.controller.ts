@@ -69,7 +69,7 @@ export class ReservationController {
   }
 
   @UseGuards(AuthenticatedGuard, RolesGuard)
-  @Delete('api/client/reservations/:id')
+  @Delete('api/client/reservations/:reservationId')
   @Roles(Role.User) // add roles restriction
   async deleteMyReservation(
     @Param(new ValidationPipe()) param: ParamDto,

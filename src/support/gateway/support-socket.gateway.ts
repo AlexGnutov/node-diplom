@@ -4,7 +4,6 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  WsException,
 } from '@nestjs/websockets';
 import { AuthService } from '../../auth/auth.service';
 import { UseGuards } from '@nestjs/common';
@@ -24,8 +23,6 @@ export class SupportSocketGateway {
     @MessageBody() chatId: string,
     @ConnectedSocket() client: any,
   ) {
-    // console.log('User: ', client.request.user, 'makes a subscription to chat:');
-    // console.log(chatId);
     client.join(chatId);
     // Check, if room exist and send suitable reply
     if (this.server.sockets.adapter.rooms.get(chatId)) {
@@ -41,10 +38,6 @@ export class SupportSocketGateway {
     // Check if room exist and send a message
     if (this.server.sockets.adapter.rooms.get(chatId)) {
       this.server.to(chatId).emit('server-reply', stringToSend);
-    } else {
-      throw new WsException(
-        `Web-socket: message NOT sent - no such room: ${chatId}`,
-      );
     }
   }
 }

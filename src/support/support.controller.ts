@@ -118,7 +118,7 @@ export class SupportController {
 
   // 2.5.6 - Mark messages from other's as read (G-R)
   @UseGuards(AuthenticatedGuard, RolesGuard)
-  @Post('api/common/support-requests/:id/messages/read')
+  @Post('api/common/support-requests/:supportRequestId/messages/read')
   @Roles(Role.Manager, Role.User)
   markChatMessagesAsRead(
     @Body() body: MarkMessagesAsReadDto,

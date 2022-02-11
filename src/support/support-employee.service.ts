@@ -53,21 +53,15 @@ export class SupportEmployeeService implements ISupportRequestEmployeeService {
       );
     }
     // Filter messages with author = request.user and readAt = null
-    const unreadMessages = request.messages.filter((message) => {
-      if (
-        !message.readAt &&
-        message.author.toString() === request.user.toString()
-      ) {
-        return true;
-      }
-      return false;
+    return request.messages.filter((message) => {
+      return (
+        !message.readAt && message.author.toString() === request.user.toString()
+      );
     });
-
-    return unreadMessages;
   }
 
   async markMessagesAsRead(params: MarkMessagesAsReadDto) {
-    let request;
+    let request: SupportRequest;
     // Get request with messages
     try {
       request = await this.supportRequestModel
@@ -87,7 +81,7 @@ export class SupportEmployeeService implements ISupportRequestEmployeeService {
         message.author.toString() === request.user.toString()
       ) {
         try {
-          await this.messageModel.findByIdAndUpdate(message['_id'], {
+          await this.messageModel.findByIdAndUpdate(message.id, {
             readAt: new Date(),
           });
         } catch (e) {

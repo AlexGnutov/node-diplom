@@ -1,18 +1,16 @@
-import { IsEmpty, IsNumber, IsOptional } from 'class-validator';
+import { IsMongoId, IsOptional } from 'class-validator';
 
 export class SearchRoomsParams {
   @IsOptional()
-  @IsNumber()
   limit?: number;
 
   @IsOptional()
-  @IsNumber()
   offset?: number;
 
   @IsOptional()
-  @IsNumber()
+  @IsMongoId()
   hotelId?: string;
 
-  @IsEmpty()
-  isEnabled?: true;
+  @IsOptional()
+  isEnabled?: boolean;
 }

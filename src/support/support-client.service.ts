@@ -122,18 +122,12 @@ export class SupportClientService implements ISupportRequestClientService {
         "DB-error: getUnreadCount - can't load request",
       );
     }
-    // Filter unread messages from support
-    const unreadMessages = request.messages.filter((message) => {
+    // Filter unread messages from support and return
+    return request.messages.filter((message) => {
       // Condition: not read, user is not the author
-      if (
-        !message.readAt &&
-        message.author.toString() !== request.user.toString()
-      ) {
-        return true;
-      }
-      return false;
+      return (
+        !message.readAt && message.author.toString() !== request.user.toString()
+      );
     });
-    // Return messages list
-    return unreadMessages;
   }
 }

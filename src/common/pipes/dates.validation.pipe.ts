@@ -1,13 +1,8 @@
-import {
-  PipeTransform,
-  Injectable,
-  ArgumentMetadata,
-  BadRequestException,
-} from '@nestjs/common';
+import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class DatesValidationPipe implements PipeTransform {
-  async transform(data: any, metadata: ArgumentMetadata) {
+  async transform(data: any) {
     // Check if data strings are valid
     const dateStart = new Date(data.dateStart);
     const dateEnd = new Date(data.dateEnd);

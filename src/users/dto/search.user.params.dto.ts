@@ -1,13 +1,11 @@
-import { IsNumber, IsOptional } from 'class-validator';
+import { IsOptional } from 'class-validator';
 import { Role } from '../../roles/role.enum';
 
 export class SearchUserParamsDto {
   @IsOptional()
-  @IsNumber()
   limit?: number;
 
   @IsOptional()
-  @IsNumber()
   offset?: number;
 
   @IsOptional()

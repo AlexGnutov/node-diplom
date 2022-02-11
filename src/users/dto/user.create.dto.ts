@@ -8,7 +8,6 @@ import {
 } from 'class-validator';
 
 export class UserCreateDto {
-  @IsDefined()
   @IsEmail()
   email: string;
 

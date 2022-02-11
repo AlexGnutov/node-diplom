@@ -8,7 +8,7 @@ export const HotelRoomSchema = new Schema({
   title: { type: String },
   description: { type: String },
   images: { type: [String] },
-  createAt: { type: Date, required: true },
+  createdAt: { type: Date, required: true },
   updatedAt: { type: Date },
   isEnabled: { type: Boolean, default: true },
 });

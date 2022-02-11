@@ -8,5 +8,5 @@ export const MessageSchema = new Schema({
   },
   sentAt: { type: Date, required: true },
   text: { type: String, required: true },
-  readAt: { type: Date, default: null },
+  readAt: { type: Date },
 });

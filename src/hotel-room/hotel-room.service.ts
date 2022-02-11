@@ -99,8 +99,11 @@ export class HotelRoomService implements IHotelRoomService {
     return rooms;
   }
 
-  public async update(id: ID, data: Partial<HotelRoom>): Promise<HotelRoom> {
-    // Combine data for update
+  public async update(
+    roomId: ID,
+    data: Partial<HotelRoom>,
+  ): Promise<HotelRoom> {
+    // Add updated At
     const roomUpdateData = {
       ...data,
       updatedAt: new Date(),
@@ -109,7 +112,7 @@ export class HotelRoomService implements IHotelRoomService {
     let updated;
     try {
       updated = await this.hotelRoomModel
-        .findOneAndUpdate({ id }, roomUpdateData, { new: true })
+        .findByIdAndUpdate(roomId, roomUpdateData, { new: true })
         .populate({ path: 'hotelId' })
         .exec();
     } catch (e) {

@@ -17,7 +17,7 @@ import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 import { RolesGuard } from '../roles/roles.guard';
 import { ValidationPipe } from '../common/pipes/validation.pipe';
 import { SearchUserParamsDto } from './dto/search.user.params.dto';
-import {UserCreateDto} from "./dto/user.create.dto";
+import { UserCreateDto } from './dto/user.create.dto';
 
 @Controller('')
 export class UsersController {
@@ -29,7 +29,7 @@ export class UsersController {
   @Roles(Role.Admin) // add roles restriction
   @UseInterceptors(CreateUserInterceptor)
   @UsePipes(new PasswordHashPipe()) // password hashed in pipe
-  createUser(@Body() userCreateData: UserCreateDto) {
+  createUser(@Body(new ValidationPipe()) userCreateData: UserCreateDto) {
     return this.usersService.create(userCreateData);
   }
 

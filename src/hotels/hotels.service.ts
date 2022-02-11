@@ -79,13 +79,13 @@ export class HotelsService implements IHotelService {
     return hotels;
   }
 
-  public async update(id: ID, data: UpdateHotelDto): Promise<Hotel> {
+  public async update(hotelId: ID, data: UpdateHotelDto): Promise<Hotel> {
     // Fix date of update
     data.updatedAt = new Date();
-    let updated;
+    let updated: Hotel;
     try {
       updated = await this.hotelModel
-        .findOneAndUpdate({ id }, data, { new: true })
+        .findByIdAndUpdate(hotelId, data, { new: true })
         .exec();
     } catch (e) {
       throw new InternalServerErrorException(
